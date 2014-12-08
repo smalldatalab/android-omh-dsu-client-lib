@@ -1,10 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="edu.cornell.tech.smalldata.omhclientlib"
-    android:versionCode="1"
-    android:versionName="0.0.001" >
+    android:versionCode="1000"
+    android:versionName="@string/omhclientlib_version_name" >
 
     <uses-sdk
-        android:minSdkVersion="8"
+        android:minSdkVersion="10"
         android:targetSdkVersion="21" />
 
     <application
