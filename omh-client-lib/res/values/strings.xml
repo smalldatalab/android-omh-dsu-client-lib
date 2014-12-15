@@ -1,5 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
     <string name="app_name">OmhClientLib</string>
+    <string name="title_activity_start_consent_screen">Consent needed</string>
 
 </resources>

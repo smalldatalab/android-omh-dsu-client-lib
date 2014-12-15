@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    
+
     <string name="omhclientlib_version_name">0.1.000</string>
-    
+
+    <!-- DSU server's Google Client ID -->
+<!--     <string name="dsu_google_client_id">48636836762-mulldgpmet2r4s3f16s931ea9crcc64m.apps.googleusercontent.com</string> -->
+
+    <!-- Client ID for web application in omh-client-lib -->
+    <string name="dsu_google_client_id">767372538757-0ia6rrkpir1c8rolmhjbac323f559o27.apps.googleusercontent.com</string>
+    <string name="dsu_google_auth_scope">email profile</string>
+    <string name="dsu_root_url">https://lifestreams.smalldata.io/dsu</string>
+    <string name="apps_dsu_client_id">pamAndroidClient</string>
+    <string name="apps_dsu_client_secret">5Eo43jkLD7z76c</string>
+
 </resources>
