@@ -15,7 +15,7 @@ public class AppConsts {
 	public static final String SHARED_PREFERENCES_DSU = "shared-preferences-dsu";
 
 	public static final String PREFERENCES_KEY_AUTHORIZATION_CODE = "AUTHORIZATION_CODE";
-
-
+	public static final String PREFERENCES_KEY_DSU_ACCESS_TOKEN = "DSU_ACCESS_TOKEN";
+	public static final String PREFERENCES_KEY_DSU_REFRESH_TOKEN = "DSU_REFRESH_TOKEN";
 
 }

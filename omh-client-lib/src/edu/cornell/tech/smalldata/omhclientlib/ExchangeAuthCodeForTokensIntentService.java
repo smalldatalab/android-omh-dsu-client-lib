@@ -12,11 +12,15 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import edu.cornell.tech.smalldata.omhclientlib.AuthorizationCodeService.State;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.util.Base64;
 import android.util.Log;
 
@@ -31,7 +35,6 @@ public class ExchangeAuthCodeForTokensIntentService extends IntentService {
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
-		Log.d(LOG_TAG, "onHandleIntent");
 		
 		mContext = getApplicationContext();
 		
@@ -40,7 +43,8 @@ public class ExchangeAuthCodeForTokensIntentService extends IntentService {
 			return;
 		}
 		
-		requestTokens(authorizationCode);
+		String requestTokensResponse = requestTokens(authorizationCode);
+		storeTokens(requestTokensResponse);
 		
 	}
 
@@ -54,7 +58,7 @@ public class ExchangeAuthCodeForTokensIntentService extends IntentService {
 		return authorizationCode;
 	}
 	
-	private void requestTokens (String authorizationCode) {
+	private String requestTokens (String authorizationCode) {
 		String response = null;
 		
 		StringBuilder urlStringBuilder = new StringBuilder();
@@ -77,7 +81,7 @@ public class ExchangeAuthCodeForTokensIntentService extends IntentService {
 			
 			String value = mContext.getString(R.string.apps_dsu_client_id) + ":" + mContext.getString(R.string.apps_dsu_client_secret);
 			byte[] valueByteArray = value.getBytes("UTF-8");
-			String encodedValue = "Basic " + Base64.encodeToString(valueByteArray, Base64.DEFAULT);
+			String encodedValue = "Basic " + Base64.encodeToString(valueByteArray, Base64.URL_SAFE | Base64.NO_WRAP);
 			
 			httpGet.setHeader("Authorization", encodedValue);
 			Log.d(LOG_TAG, "Authorization: " + value + " (encoded: " + encodedValue + ")");
@@ -100,8 +104,6 @@ public class ExchangeAuthCodeForTokensIntentService extends IntentService {
 			response = sb.toString();
 			Log.d(LOG_TAG, response);
 
-//			return response;
-
 		} catch (Throwable tr) {
 			Log.e(LOG_TAG, "Throwable at getting tokens from DSU.", tr);
 		}
@@ -115,72 +117,44 @@ public class ExchangeAuthCodeForTokensIntentService extends IntentService {
 			}
 		}
 		
+		return response;
+			
 	}
+	
+	private void storeTokens(String signInResponse) {
 
-	/**
-	 * Sign in to DSU with the Google One-Time Auth Code
-	 */
-	private void requestTokensHarderStep2 (String authorizationCode) {
-			Log.d(LOG_TAG, "requestTokensHarderStep2");
-			String response = null;
+		if (signInResponse == null) {
+			return;
+		}
+		
+		JSONObject signInResponsejJsonObject = null;
+		try { signInResponsejJsonObject = new JSONObject(signInResponse); }
+		catch (JSONException e) {}
+		
+		if (signInResponsejJsonObject == null) {
+			return;
+		}
+		
+		String accessToken = null;
+		try { accessToken = signInResponsejJsonObject.getString("access_token"); } catch (Exception e) {}
+		String refreshToken = null;
+		try { refreshToken = signInResponsejJsonObject.getString("refresh_token"); } catch (Exception e) {}
+		
+		if (accessToken != null && refreshToken != null) {
 			
-			StringBuilder urlStringBuilder = new StringBuilder();
+			SharedPreferences dsuSharedPreferences = getSharedPreferences(AppConsts.SHARED_PREFERENCES_DSU, Context.MODE_PRIVATE);
+			Editor editor = dsuSharedPreferences.edit();
 			
-			urlStringBuilder.append(mContext.getString(R.string.dsu_root_url))
-			.append('/').append("auth/google")
-			.append('?').append("code").append('=').append("fromApp_").append(authorizationCode);
+			editor.putString(AppConsts.PREFERENCES_KEY_DSU_ACCESS_TOKEN, accessToken);
+			editor.putString(AppConsts.PREFERENCES_KEY_DSU_REFRESH_TOKEN, refreshToken);
 			
-			String urlString = urlStringBuilder.toString();;
-			Log.d(LOG_TAG, urlString);
+			editor.commit();
 			
-			InputStreamReader isr = null;
-			
-			try {
-				
-				URI uri = new URI(urlString);
-				HttpGet httpGet = new HttpGet(uri);
-				
-				CookieManager cookieManager = new CookieManager();
-                CookieHandler.setDefault(cookieManager);
-				HttpClient httpClient = new DefaultHttpClient();
-				
-				HttpResponse httpResponse = httpClient.execute(httpGet);
-				
-				int statusCode = httpResponse.getStatusLine().getStatusCode();
-				Log.d(LOG_TAG, "statusCode: " + statusCode);
-				
-				Header[] headersArray = httpResponse.getAllHeaders();
-				for (int i = 0; i < headersArray.length; i++) {
-					Log.d(LOG_TAG, "header " + headersArray[i].getName() + ": " + headersArray[i].getValue());
-				}
-				
-				BufferedReader bufferedReader = null;
-				StringBuilder sb = null;
-				
-				isr = new InputStreamReader(httpResponse.getEntity().getContent());
-				bufferedReader = new BufferedReader(isr);
-				String line = "";
-				sb = new StringBuilder();
-				while ((line = bufferedReader.readLine()) != null) {
-					sb.append(line).append("\n");
-				}
-	
-				response = sb.toString();
-				Log.d(LOG_TAG, response);
-	
-			} catch (Throwable tr) {
-				Log.e(LOG_TAG, "Throwable at getting tokens from DSU.", tr);
-			}
-			finally {
-				try { 
-					isr.close();
-					isr = null;
-				}
-				catch (IOException e) {
-					Log.e(LOG_TAG, "Exception at closing http response input stream when getting tokens from DSU.", e);
-				}
-			}
+			Log.d(LOG_TAG, String.format("Access token %s and refresh token %s stored.", accessToken, refreshToken));
 			
 		}
+		
+	}
+
 	
 }

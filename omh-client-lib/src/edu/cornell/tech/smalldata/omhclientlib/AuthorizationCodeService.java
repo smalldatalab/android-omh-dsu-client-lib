@@ -134,7 +134,6 @@ public class AuthorizationCodeService extends Service implements ConnectionCallb
 
 		String dsuGoogleClientId = context.getString(R.string.dsu_google_client_id);
 		String authScopes = context.getString(R.string.dsu_google_auth_scope);
-//		String scopes = "oauth2:" + authScopes;
 		String scopes = "oauth2:server:client_id:" + dsuGoogleClientId + ":api_scope:" + authScopes;
 		String accountName = Plus.AccountApi.getAccountName(googleApiClient);
 
