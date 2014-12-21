@@ -12,10 +12,13 @@ public class AppConsts {
 
 	public static final String ACTION_USER_INTERVENTION_SCREEN_FINISHED = "edu.cornell.tech.smalldata.omhclientlib.USER_INTERVENTION_SCREEN_FINISHED";
 
-	public static final String SHARED_PREFERENCES_DSU = "shared-preferences-dsu";
+	public static final String SHARED_PREFERENCES_OMHCLIENTLIB = "shared-preferences-omhclientlib";
 
 	public static final String PREFERENCES_KEY_AUTHORIZATION_CODE = "AUTHORIZATION_CODE";
 	public static final String PREFERENCES_KEY_DSU_ACCESS_TOKEN = "DSU_ACCESS_TOKEN";
 	public static final String PREFERENCES_KEY_DSU_REFRESH_TOKEN = "DSU_REFRESH_TOKEN";
+
+	public static final String SCHEMA_NAMESPACE = "omh";
+	public static final String SCHEMA_VERSION = "1.0";
 
 }

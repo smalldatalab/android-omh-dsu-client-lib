@@ -1,4 +1,4 @@
-package edu.cornell.tech.smalldata.omhclientlib;
+package edu.cornell.tech.smalldata.omhclientlib.services;
 
 import java.util.UUID;
 
@@ -24,6 +24,11 @@ import com.google.android.gms.common.api.GoogleApiClient.Builder;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.plus.Plus;
+
+import edu.cornell.tech.smalldata.omhclientlib.AppConsts;
+import edu.cornell.tech.smalldata.omhclientlib.R;
+import edu.cornell.tech.smalldata.omhclientlib.StartUserInterventionActivity;
+import edu.cornell.tech.smalldata.omhclientlib.R.string;
 
 public class AuthorizationCodeService extends Service implements ConnectionCallbacks, OnConnectionFailedListener {
 
@@ -186,7 +191,7 @@ public class AuthorizationCodeService extends Service implements ConnectionCallb
 
 	private void storeAuthorizationCode(String authorizationCode) {
 
-		SharedPreferences dsuSharedPreferences = getSharedPreferences(AppConsts.SHARED_PREFERENCES_DSU, Context.MODE_PRIVATE);
+		SharedPreferences dsuSharedPreferences = getSharedPreferences(AppConsts.SHARED_PREFERENCES_OMHCLIENTLIB, Context.MODE_PRIVATE);
 		Editor editor = dsuSharedPreferences.edit();
 
 		if (authorizationCode != null) {

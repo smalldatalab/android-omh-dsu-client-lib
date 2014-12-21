@@ -1,4 +1,4 @@
-package edu.cornell.tech.smalldata.omhclientlib;
+package edu.cornell.tech.smalldata.omhclientlib.services;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,7 +15,9 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import edu.cornell.tech.smalldata.omhclientlib.AuthorizationCodeService.State;
+import edu.cornell.tech.smalldata.omhclientlib.AppConsts;
+import edu.cornell.tech.smalldata.omhclientlib.R;
+import edu.cornell.tech.smalldata.omhclientlib.R.string;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
@@ -51,7 +53,7 @@ public class ExchangeAuthCodeForTokensIntentService extends IntentService {
 	private String readAuthorizationCode() {
 		String authorizationCode = null;
 		
-		SharedPreferences dsuSharedPreferences = mContext.getSharedPreferences(AppConsts.SHARED_PREFERENCES_DSU, Context.MODE_PRIVATE);
+		SharedPreferences dsuSharedPreferences = mContext.getSharedPreferences(AppConsts.SHARED_PREFERENCES_OMHCLIENTLIB, Context.MODE_PRIVATE);
 
 		authorizationCode = dsuSharedPreferences.getString(AppConsts.PREFERENCES_KEY_AUTHORIZATION_CODE, null);
 
@@ -142,7 +144,7 @@ public class ExchangeAuthCodeForTokensIntentService extends IntentService {
 		
 		if (accessToken != null && refreshToken != null) {
 			
-			SharedPreferences dsuSharedPreferences = getSharedPreferences(AppConsts.SHARED_PREFERENCES_DSU, Context.MODE_PRIVATE);
+			SharedPreferences dsuSharedPreferences = getSharedPreferences(AppConsts.SHARED_PREFERENCES_OMHCLIENTLIB, Context.MODE_PRIVATE);
 			Editor editor = dsuSharedPreferences.edit();
 			
 			editor.putString(AppConsts.PREFERENCES_KEY_DSU_ACCESS_TOKEN, accessToken);
