@@ -1,5 +1,6 @@
 package edu.cornell.tech.smalldata.omhclientlib;
 
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -15,114 +16,126 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.app.IntentService;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.util.Log;
 import edu.cornell.tech.smalldata.omhclientlib.enums.AcquisitionProvenanceModality;
-import edu.cornell.tech.smalldata.omhclientlib.enums.MassUnit;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.HeaderNotInsertedException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.HttpPostRequestFailedException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.NoAccessTokenException;
+import edu.cornell.tech.smalldata.omhclientlib.exceptions.PayloadBodyNotCreatedException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.RequestBodyNotCreatedException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.WritingToDsuFailedException;
-import edu.cornell.tech.smalldata.omhclientlib.schema.BodyWeight;
+import edu.cornell.tech.smalldata.omhclientlib.schema.BodyWeightSchema;
+import edu.cornell.tech.smalldata.omhclientlib.schema.BodyWeightSchema.BodyWeight;
+import edu.cornell.tech.smalldata.omhclientlib.schema.MassUnitValueSchema;
+import edu.cornell.tech.smalldata.omhclientlib.schema.MassUnitValueSchema.Unit;
+import edu.cornell.tech.smalldata.omhclientlib.schema.MassUnitValueSchema.Value;
 import edu.cornell.tech.smalldata.omhclientlib.schema.Schema;
 
-public class WriteToDsuIntentService extends IntentService {
+public class DsuWriter {
 	
-	private static String LOG_TAG = AppConsts.APP_LOG_TAG;
-	private static final String ACTION_WRITE_BODY_WEIGHT = "edu.cornell.tech.smalldata.omhclientlib.action.WRITE_BODY_WEIGHT";
+	private static final int ACTION_WRITE_BODY_WEIGHT = 1;
 
-	private static final String EXTRA_PARAM_BODY_WEIGHT_UNIT = "edu.cornell.tech.smalldata.omhclientlib.extra.PARAM_BODY_WEIGHT_UNIT";
-	private static final String EXTRA_PARAM_BODY_WEIGHT_UNIT_VALUE = "edu.cornell.tech.smalldata.omhclientlib.extra.PARAM_BODY_WEIGHT_UNIT_VALUE";
-
-	/**
-	 * Starts this service to perform writing body weight data to DSU
-	 */
-	public static void startActionWriteBodyWeight(Context context, String bodyWeightUnit, double bodyWeightUnitValue) {
+	public static void writeBodyWeight(Context context, BodyWeightSchema bodyWeightSchema) {
 		
-		Intent intent = new Intent(context, WriteToDsuIntentService.class);
-		intent.setAction(ACTION_WRITE_BODY_WEIGHT);
-		intent.putExtra(EXTRA_PARAM_BODY_WEIGHT_UNIT, bodyWeightUnit);
-		intent.putExtra(EXTRA_PARAM_BODY_WEIGHT_UNIT_VALUE, bodyWeightUnitValue);
-		context.startService(intent);
+		DsuWriter dsuWriter = new DsuWriter(context);
+		dsuWriter.startWrite(ACTION_WRITE_BODY_WEIGHT, bodyWeightSchema);
+		
+	}
+	
+	public DsuWriter(Context context) {
+		this.mContext = context;
 	}
 
+	private static final String LOG_TAG = AppConsts.APP_LOG_TAG;
 	private Context mContext;
 
-	public WriteToDsuIntentService() {
-		super("WriteToDsuIntentService");
-	}
-
-	@Override
-	protected void onHandleIntent(Intent intent) {
+	private void startWrite(final int writeAction, final Schema schema) {
 		
-		mContext = getApplicationContext();
-		
-		if (intent != null) {
-			final String action = intent.getAction();
-			
-			switch (action) {
-			case ACTION_WRITE_BODY_WEIGHT:
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
 				
-				final String bodyWeightUnit = intent.getStringExtra(EXTRA_PARAM_BODY_WEIGHT_UNIT);
-				final double bodyWeightUnitValue = intent.getDoubleExtra(EXTRA_PARAM_BODY_WEIGHT_UNIT_VALUE, 0d);
-				try {
-					handleActionWriteBodyWeight(new BodyWeight(bodyWeightUnitValue, MassUnit.KG));
-				} catch (NoAccessTokenException | RequestBodyNotCreatedException | HttpPostRequestFailedException e) {
-					WritingToDsuFailedException e1 = new WritingToDsuFailedException();
-					e1.addSuppressed(e);
-					Log.e(LOG_TAG, "ACTION_WRITE_BODY_WEIGHT", e1);
-				}
-				break;
-			default:
-				break;
+				handleWrite(writeAction, schema);
 			}
-			
-		}
+		}).start();
+		
 	}
 
-	private void handleActionWriteBodyWeight(BodyWeight bodyWeight)
+	protected void handleWrite(int writeAction, Schema schema) {
+		
+		switch (writeAction) {
+		case ACTION_WRITE_BODY_WEIGHT:
+			
+			try {
+				handleActionWriteBodyWeight((BodyWeightSchema) schema);
+			} catch (NoAccessTokenException | RequestBodyNotCreatedException | HttpPostRequestFailedException e) {
+				WritingToDsuFailedException e1 = new WritingToDsuFailedException();
+				e1.addSuppressed(e);
+				Log.e(LOG_TAG, "ACTION_WRITE_BODY_WEIGHT", e1);
+			}
+			break;
+
+		default:
+			break;
+		}
+		
+		
+	}
+
+
+	private void handleActionWriteBodyWeight(BodyWeightSchema bodyWeightSchema)
 			throws NoAccessTokenException, RequestBodyNotCreatedException, HttpPostRequestFailedException {
 		
 		String entity;
 		try { 
-			entity = formPayloadBodyWeight(bodyWeight); 
-		} catch (HeaderNotInsertedException e) {
+			entity = formPayloadBodyWeight(bodyWeightSchema); 
+		} catch (HeaderNotInsertedException | PayloadBodyNotCreatedException e) {
 			RequestBodyNotCreatedException e1 = new RequestBodyNotCreatedException();
 			e1.addSuppressed(e);
 			throw e1;
 		}
 		
 		request(entity);
-
+	
 	}
 
-	private String formPayloadBodyWeight(BodyWeight bodyWeight) throws HeaderNotInsertedException {
+
+	private String formPayloadBodyWeight(BodyWeightSchema bodyWeightSchema) throws HeaderNotInsertedException, PayloadBodyNotCreatedException {
 		
 		JSONObject payloadJsonObject = new JSONObject();
 		
-		insertPayloadHeader(payloadJsonObject, "001", null, AcquisitionProvenanceModality.SENSED);
+		insertPayloadHeader(payloadJsonObject, "002", null, AcquisitionProvenanceModality.SENSED);
 		
 		try {
 			JSONObject bodyJsonObject = new JSONObject();
 			
-			JSONObject bodyWeightJsonObject = new JSONObject();
-			bodyWeightJsonObject.put("value", bodyWeight.bodyWeightValue);
-			bodyWeightJsonObject.put("unit", bodyWeight.bodyWeightMassUnit.inJson());
+			BodyWeight propertyBodyWeight = bodyWeightSchema.getPropertyBodyWeight();
 			
-			bodyJsonObject.put(BodyWeight.PROPERTY_BODY_WEIGHT, bodyWeightJsonObject);
+			JSONObject bodyWeightJsonObject = new JSONObject();
+			
+			MassUnitValueSchema massUnitValueSchema = propertyBodyWeight.getJsonValue();
+			Unit propertyUnit = massUnitValueSchema.getPropertyUnit();
+			Value propertyValue = massUnitValueSchema.getPropertyValue();
+			
+			bodyWeightJsonObject.put(propertyUnit.getJsonName(), propertyUnit.getJsonValue());
+			bodyWeightJsonObject.put(propertyValue.getJsonName(), propertyValue.getJsonValue());
+			
+			bodyJsonObject.put(propertyBodyWeight.getJsonName(), bodyWeightJsonObject);
 			
 			payloadJsonObject.put("body", bodyJsonObject); 
 		} 
 		catch (JSONException e) {
+			PayloadBodyNotCreatedException e1 = new PayloadBodyNotCreatedException();
+			e1.addSuppressed(e);
+			throw e1;
 		}
 		
 		try { Log.d(LOG_TAG, payloadJsonObject.toString(2)); } catch (JSONException e) {}
 		return payloadJsonObject.toString();
 	}
+
 
 	private void insertPayloadHeader(JSONObject jsonObject, String id, Schema schema, AcquisitionProvenanceModality acquisitionProvenanceModality) throws HeaderNotInsertedException {
 		
@@ -157,6 +170,7 @@ public class WriteToDsuIntentService extends IntentService {
 		}
 		
 	}
+
 
 	private void request(String entity) throws NoAccessTokenException, HttpPostRequestFailedException {
 		
@@ -225,16 +239,17 @@ public class WriteToDsuIntentService extends IntentService {
 		}
 	}
 
+
 	private String readAccessToken() {
 		
 		String accessToken = null;
 		
 		SharedPreferences dsuSharedPreferences = mContext.getSharedPreferences(AppConsts.SHARED_PREFERENCES_OMHCLIENTLIB, Context.MODE_PRIVATE);
-
+	
 		accessToken = dsuSharedPreferences.getString(AppConsts.PREFERENCES_KEY_DSU_ACCESS_TOKEN, null);
-
+	
 		return accessToken;
 	}
 
-	
+
 }
