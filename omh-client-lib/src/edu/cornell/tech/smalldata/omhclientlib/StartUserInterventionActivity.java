@@ -14,7 +14,7 @@ import android.view.MenuItem;
 
 public class StartUserInterventionActivity extends Activity {
 
-	private static String LOG_TAG = AppConsts.APP_LOG_TAG;
+	private static String LOG_TAG = OmhClientLibConsts.APP_LOG_TAG;
 	
 	private static final int REQUEST_CODE_USER_INTERVENTION_SCREEN = 0;
 	private Intent mIntent;
@@ -25,18 +25,18 @@ public class StartUserInterventionActivity extends Activity {
 		
 		mIntent = getIntent();
 		
-		if (mIntent.hasExtra(AppConsts.EXTRA_USER_INTERVENTION_INTENT)) {
+		if (mIntent.hasExtra(OmhClientLibConsts.EXTRA_USER_INTERVENTION_INTENT)) {
 			
-			Intent userInterventionIntent = mIntent.getParcelableExtra(AppConsts.EXTRA_USER_INTERVENTION_INTENT);
+			Intent userInterventionIntent = mIntent.getParcelableExtra(OmhClientLibConsts.EXTRA_USER_INTERVENTION_INTENT);
 			if (userInterventionIntent != null) {
 				startActivityForResult(userInterventionIntent, REQUEST_CODE_USER_INTERVENTION_SCREEN);
 			} else {
 				Log.d(LOG_TAG, "user intervention intent is null");
 			}
 			
-		} else if (mIntent.hasExtra(AppConsts.EXTRA_USER_INTERVENTION_PENDING_INTENT)) {
+		} else if (mIntent.hasExtra(OmhClientLibConsts.EXTRA_USER_INTERVENTION_PENDING_INTENT)) {
 			
-			PendingIntent userInterventionPendingIntent = mIntent.getParcelableExtra(AppConsts.EXTRA_USER_INTERVENTION_PENDING_INTENT);
+			PendingIntent userInterventionPendingIntent = mIntent.getParcelableExtra(OmhClientLibConsts.EXTRA_USER_INTERVENTION_PENDING_INTENT);
 			if (userInterventionPendingIntent != null) {
 				
 				IntentSender intentSender = userInterventionPendingIntent.getIntentSender();
@@ -67,9 +67,9 @@ public class StartUserInterventionActivity extends Activity {
 			
 			LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(this);
 			
-			Intent intent = new Intent(AppConsts.ACTION_USER_INTERVENTION_SCREEN_FINISHED);
-			if (mIntent.hasExtra(AppConsts.EXTRA_DSU_INSTANCE_IDENTIFIER)) {
-				intent.putExtra(AppConsts.EXTRA_DSU_INSTANCE_IDENTIFIER, mIntent.getStringExtra(AppConsts.EXTRA_DSU_INSTANCE_IDENTIFIER));
+			Intent intent = new Intent(OmhClientLibConsts.ACTION_USER_INTERVENTION_SCREEN_FINISHED);
+			if (mIntent.hasExtra(OmhClientLibConsts.EXTRA_DSU_INSTANCE_IDENTIFIER)) {
+				intent.putExtra(OmhClientLibConsts.EXTRA_DSU_INSTANCE_IDENTIFIER, mIntent.getStringExtra(OmhClientLibConsts.EXTRA_DSU_INSTANCE_IDENTIFIER));
 			}
 			
 			localBroadcastManager.sendBroadcast(intent);

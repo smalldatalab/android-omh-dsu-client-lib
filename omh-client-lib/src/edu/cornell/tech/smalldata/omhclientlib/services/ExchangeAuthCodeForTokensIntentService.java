@@ -3,11 +3,8 @@ package edu.cornell.tech.smalldata.omhclientlib.services;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.CookieHandler;
-import java.net.CookieManager;
 import java.net.URI;
 
-import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -15,9 +12,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import edu.cornell.tech.smalldata.omhclientlib.AppConsts;
-import edu.cornell.tech.smalldata.omhclientlib.R;
-import edu.cornell.tech.smalldata.omhclientlib.R.string;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
@@ -25,10 +19,12 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.util.Base64;
 import android.util.Log;
+import edu.cornell.tech.smalldata.omhclientlib.OmhClientLibConsts;
+import edu.cornell.tech.smalldata.omhclientlib.R;
 
 public class ExchangeAuthCodeForTokensIntentService extends IntentService {
 	
-	private static String LOG_TAG = AppConsts.APP_LOG_TAG;
+	private static String LOG_TAG = OmhClientLibConsts.APP_LOG_TAG;
 	private Context mContext;
 	
 	public ExchangeAuthCodeForTokensIntentService() {
@@ -53,9 +49,9 @@ public class ExchangeAuthCodeForTokensIntentService extends IntentService {
 	private String readAuthorizationCode() {
 		String authorizationCode = null;
 		
-		SharedPreferences dsuSharedPreferences = mContext.getSharedPreferences(AppConsts.SHARED_PREFERENCES_OMHCLIENTLIB, Context.MODE_PRIVATE);
+		SharedPreferences libSharedPreferences = mContext.getSharedPreferences(OmhClientLibConsts.SHARED_PREFERENCES_OMHCLIENTLIB, Context.MODE_PRIVATE);
 
-		authorizationCode = dsuSharedPreferences.getString(AppConsts.PREFERENCES_KEY_AUTHORIZATION_CODE, null);
+		authorizationCode = libSharedPreferences.getString(OmhClientLibConsts.PREFERENCES_KEY_AUTHORIZATION_CODE, null);
 
 		return authorizationCode;
 	}
@@ -144,11 +140,11 @@ public class ExchangeAuthCodeForTokensIntentService extends IntentService {
 		
 		if (accessToken != null && refreshToken != null) {
 			
-			SharedPreferences dsuSharedPreferences = getSharedPreferences(AppConsts.SHARED_PREFERENCES_OMHCLIENTLIB, Context.MODE_PRIVATE);
-			Editor editor = dsuSharedPreferences.edit();
+			SharedPreferences libSharedPreferences = getSharedPreferences(OmhClientLibConsts.SHARED_PREFERENCES_OMHCLIENTLIB, Context.MODE_PRIVATE);
+			Editor editor = libSharedPreferences.edit();
 			
-			editor.putString(AppConsts.PREFERENCES_KEY_DSU_ACCESS_TOKEN, accessToken);
-			editor.putString(AppConsts.PREFERENCES_KEY_DSU_REFRESH_TOKEN, refreshToken);
+			editor.putString(OmhClientLibConsts.PREFERENCES_KEY_DSU_ACCESS_TOKEN, accessToken);
+			editor.putString(OmhClientLibConsts.PREFERENCES_KEY_DSU_REFRESH_TOKEN, refreshToken);
 			
 			editor.commit();
 			

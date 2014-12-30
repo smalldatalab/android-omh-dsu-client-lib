@@ -25,14 +25,14 @@ import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.plus.Plus;
 
-import edu.cornell.tech.smalldata.omhclientlib.AppConsts;
+import edu.cornell.tech.smalldata.omhclientlib.OmhClientLibConsts;
 import edu.cornell.tech.smalldata.omhclientlib.R;
 import edu.cornell.tech.smalldata.omhclientlib.StartUserInterventionActivity;
 import edu.cornell.tech.smalldata.omhclientlib.R.string;
 
 public class AuthorizationCodeService extends Service implements ConnectionCallbacks, OnConnectionFailedListener {
 
-	private static String LOG_TAG = AppConsts.APP_LOG_TAG;
+	private static String LOG_TAG = OmhClientLibConsts.APP_LOG_TAG;
 
 	public enum State {
 		INIT, 
@@ -169,8 +169,8 @@ public class AuthorizationCodeService extends Service implements ConnectionCallb
 
 			Intent startUserInterventionActivityIntent = new Intent(context, StartUserInterventionActivity.class);
 			
-			startUserInterventionActivityIntent.putExtra(AppConsts.EXTRA_USER_INTERVENTION_INTENT, userInterventionIntent);
-			startUserInterventionActivityIntent.putExtra(AppConsts.EXTRA_DSU_INSTANCE_IDENTIFIER, mUuidString );
+			startUserInterventionActivityIntent.putExtra(OmhClientLibConsts.EXTRA_USER_INTERVENTION_INTENT, userInterventionIntent);
+			startUserInterventionActivityIntent.putExtra(OmhClientLibConsts.EXTRA_DSU_INSTANCE_IDENTIFIER, mUuidString );
 			
 			startUserInterventionActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
@@ -178,7 +178,7 @@ public class AuthorizationCodeService extends Service implements ConnectionCallb
 
 			setState(State.USER_INTERVENTION_ON_GETTING_AUTHORIZATION_CODE);
 
-			IntentFilter intentFilter = new IntentFilter(AppConsts.ACTION_USER_INTERVENTION_SCREEN_FINISHED);
+			IntentFilter intentFilter = new IntentFilter(OmhClientLibConsts.ACTION_USER_INTERVENTION_SCREEN_FINISHED);
 			mLocalBroadcastManager.registerReceiver(mUserInterventionScreenFinishedBR, intentFilter);
 
 		} catch(Throwable tr){
@@ -191,11 +191,11 @@ public class AuthorizationCodeService extends Service implements ConnectionCallb
 
 	private void storeAuthorizationCode(String authorizationCode) {
 
-		SharedPreferences dsuSharedPreferences = getSharedPreferences(AppConsts.SHARED_PREFERENCES_OMHCLIENTLIB, Context.MODE_PRIVATE);
+		SharedPreferences dsuSharedPreferences = getSharedPreferences(OmhClientLibConsts.SHARED_PREFERENCES_OMHCLIENTLIB, Context.MODE_PRIVATE);
 		Editor editor = dsuSharedPreferences.edit();
 
 		if (authorizationCode != null) {
-			editor.putString(AppConsts.PREFERENCES_KEY_AUTHORIZATION_CODE, authorizationCode);
+			editor.putString(OmhClientLibConsts.PREFERENCES_KEY_AUTHORIZATION_CODE, authorizationCode);
 			setState(State.GOOGLE_AUTHORIZATION_CODE_STORED);
 		}
 		
@@ -206,8 +206,8 @@ public class AuthorizationCodeService extends Service implements ConnectionCallb
 	private void onReceiveUserInterventionScreenFinished(Context context, Intent intent) {
 
 		boolean ok = false;
-		if (intent.hasExtra(AppConsts.EXTRA_DSU_INSTANCE_IDENTIFIER)) {
-			String dsuInstanceIdentifier = intent.getStringExtra(AppConsts.EXTRA_DSU_INSTANCE_IDENTIFIER);
+		if (intent.hasExtra(OmhClientLibConsts.EXTRA_DSU_INSTANCE_IDENTIFIER)) {
+			String dsuInstanceIdentifier = intent.getStringExtra(OmhClientLibConsts.EXTRA_DSU_INSTANCE_IDENTIFIER);
 			if (dsuInstanceIdentifier.equals(mUuidString)) {
 				ok = true;
 			}
@@ -264,8 +264,8 @@ public class AuthorizationCodeService extends Service implements ConnectionCallb
 
 			Intent startUserInterventionActivityIntent = new Intent(mContext, StartUserInterventionActivity.class);
 			
-			startUserInterventionActivityIntent.putExtra(AppConsts.EXTRA_USER_INTERVENTION_PENDING_INTENT, resolutionPendingIntent);
-			startUserInterventionActivityIntent.putExtra(AppConsts.EXTRA_DSU_INSTANCE_IDENTIFIER, mUuidString );
+			startUserInterventionActivityIntent.putExtra(OmhClientLibConsts.EXTRA_USER_INTERVENTION_PENDING_INTENT, resolutionPendingIntent);
+			startUserInterventionActivityIntent.putExtra(OmhClientLibConsts.EXTRA_DSU_INSTANCE_IDENTIFIER, mUuidString );
 			
 			startUserInterventionActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
@@ -273,7 +273,7 @@ public class AuthorizationCodeService extends Service implements ConnectionCallb
 
 			setState(State.USER_INTERVENTION_ON_CONNECTION_FAILED);
 
-			IntentFilter intentFilter = new IntentFilter(AppConsts.ACTION_USER_INTERVENTION_SCREEN_FINISHED);
+			IntentFilter intentFilter = new IntentFilter(OmhClientLibConsts.ACTION_USER_INTERVENTION_SCREEN_FINISHED);
 			mLocalBroadcastManager.registerReceiver(mUserInterventionScreenFinishedBR, intentFilter);
 			
 		} else {

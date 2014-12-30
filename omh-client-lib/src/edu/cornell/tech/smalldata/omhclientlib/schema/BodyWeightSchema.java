@@ -3,9 +3,11 @@ package edu.cornell.tech.smalldata.omhclientlib.schema;
 
 
 public class BodyWeightSchema implements Schema {
-
-	public static final String NAME = "body-weight";
 	
+	public String getSchemaName() {
+		return "body-weight";
+	}
+
 	private BodyWeight bodyWeight;
 	
 	public BodyWeightSchema(BodyWeight propertyBodyWeight) {

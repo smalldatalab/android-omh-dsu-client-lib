@@ -14,7 +14,11 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <service
-            android:name=".DsuWriter"
+            android:name=".services.DataPointCreator"
+            android:exported="false" >
+        </service>
+        <service
+            android:name=".DsuWriterIntentService"
             android:exported="false" >
         </service>
     </application>

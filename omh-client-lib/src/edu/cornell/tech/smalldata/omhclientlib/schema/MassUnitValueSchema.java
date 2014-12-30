@@ -1,9 +1,11 @@
 package edu.cornell.tech.smalldata.omhclientlib.schema;
 
 public class MassUnitValueSchema implements Schema {
-
-	public static final String NAME = "mass-unit-value";
 	
+	public String getSchemaName() {
+		return "mass-unit-value";
+	}
+
 	private Unit unit;
 	private Value value;
 	

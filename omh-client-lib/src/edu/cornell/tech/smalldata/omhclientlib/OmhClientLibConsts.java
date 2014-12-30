@@ -1,8 +1,7 @@
 package edu.cornell.tech.smalldata.omhclientlib;
 
-import android.content.Intent;
 
-public class AppConsts {
+public class OmhClientLibConsts {
 	
 	public static final String APP_LOG_TAG = "OmhClientLib";
 
@@ -17,8 +16,14 @@ public class AppConsts {
 	public static final String PREFERENCES_KEY_AUTHORIZATION_CODE = "AUTHORIZATION_CODE";
 	public static final String PREFERENCES_KEY_DSU_ACCESS_TOKEN = "DSU_ACCESS_TOKEN";
 	public static final String PREFERENCES_KEY_DSU_REFRESH_TOKEN = "DSU_REFRESH_TOKEN";
+	public static final String PREFERENCES_KEY_INSTALLATION_ID = "INSTALLATION_ID";
+	public static final String PREFERENCES_KEY_DATA_POINT_SEQUENCE = "DATA_POINT_SEQUENCE";
 
 	public static final String SCHEMA_NAMESPACE = "omh";
 	public static final String SCHEMA_VERSION = "1.0";
+
+
+
+	public static String sPayload;
 
 }
