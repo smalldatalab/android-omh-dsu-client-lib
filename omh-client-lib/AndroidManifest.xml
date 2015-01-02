@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="edu.cornell.tech.smalldata.omhclientlib"
-    android:versionCode="3000"
+    android:versionCode="7000"
     android:versionName="@string/omhclientlib_version_name" >
 
     <uses-sdk
@@ -13,14 +13,6 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
-        <service
-            android:name=".services.DataPointCreator"
-            android:exported="false" >
-        </service>
-        <service
-            android:name=".DsuWriterIntentService"
-            android:exported="false" >
-        </service>
     </application>
 
 </manifest>

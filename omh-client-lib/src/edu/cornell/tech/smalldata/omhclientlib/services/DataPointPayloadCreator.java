@@ -1,6 +1,5 @@
 package edu.cornell.tech.smalldata.omhclientlib.services;
 
-
 import java.util.Calendar;
 import java.util.TimeZone;
 
@@ -17,56 +16,53 @@ import edu.cornell.tech.smalldata.omhclientlib.exceptions.DatapointCreationFaile
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.HeaderNotInsertedException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.PayloadBodyNotCreatedException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.RequestBodyNotCreatedException;
-import edu.cornell.tech.smalldata.omhclientlib.exceptions.WritingToDsuFailedException;
 import edu.cornell.tech.smalldata.omhclientlib.schema.BodyWeightSchema;
-import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema;
 import edu.cornell.tech.smalldata.omhclientlib.schema.BodyWeightSchema.BodyWeight;
 import edu.cornell.tech.smalldata.omhclientlib.schema.MassUnitValueSchema;
 import edu.cornell.tech.smalldata.omhclientlib.schema.MassUnitValueSchema.Unit;
 import edu.cornell.tech.smalldata.omhclientlib.schema.MassUnitValueSchema.Value;
+import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema;
 import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema.PositiveAffect;
 import edu.cornell.tech.smalldata.omhclientlib.schema.Schema;
 import edu.cornell.tech.smalldata.omhclientlib.schema.UnitValueSchema;
 
-public class DataPointCreator {
+public class DataPointPayloadCreator {
 	
 	private static final int DATAPOINT_BODY_WEIGHT = 1;
 	private static final int DATAPOINT_PAM = 2;
+	private static final String LOG_TAG = OmhClientLibConsts.APP_LOG_TAG;
 	
-	public static void createBodyWeight(final Context context, final BodyWeightSchema bodyWeightSchema) {
+	private Context mContext;
+	
+	public static String createBodyWeight(final Context context, final BodyWeightSchema bodyWeightSchema) {
+		String payload = null;
 		
-		DataPointCreator dataPointCreator = new DataPointCreator(context);
-		dataPointCreator.startCreation(DATAPOINT_BODY_WEIGHT, bodyWeightSchema);
+		DataPointPayloadCreator dataPointCreator = new DataPointPayloadCreator(context);
+		payload = dataPointCreator.startCreation(DATAPOINT_BODY_WEIGHT, bodyWeightSchema);
 		
+		return payload;
 	}
 
-	public static void createPam(final Context context, final PamSchema pamSchema) {
+	public static String createPam(final Context context, final PamSchema pamSchema) {
+		String payload = null;
 		
-		DataPointCreator dataPointCreator = new DataPointCreator(context);
-		dataPointCreator.startCreation(DATAPOINT_PAM, pamSchema);
+		DataPointPayloadCreator dataPointCreator = new DataPointPayloadCreator(context);
+		payload = dataPointCreator.startCreation(DATAPOINT_PAM, pamSchema);
 		
+		return payload;
 	}
 	
-	public DataPointCreator(Context context) {
+	public DataPointPayloadCreator(Context context) {
 		this.mContext = context;
 	}
 
-	private static final String LOG_TAG = OmhClientLibConsts.APP_LOG_TAG;
-	private Context mContext;
-
-	private void startCreation(final int dataPointType, final Schema schema) {
+	private String startCreation(final int dataPointType, final Schema schema) {
 		
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				
-				handleCreation(dataPointType, schema);
-			}
-		}).start();
+		return handleCreation(dataPointType, schema);
 		
 	}
 
-	private void handleCreation(int dataPointType, Schema schema) {
+	private String handleCreation(int dataPointType, Schema schema) {
 		String payload = null;
 		
 		switch (dataPointType) {
@@ -94,10 +90,7 @@ public class DataPointCreator {
 			break;
 		}
 		
-		if (payload != null) {
-			OmhClientLibConsts.sPayload = payload;
-		}
-		
+		return payload;
 	}
 	
 	private String handleCreationBodyWeight(BodyWeightSchema bodyWeightSchema) throws RequestBodyNotCreatedException {

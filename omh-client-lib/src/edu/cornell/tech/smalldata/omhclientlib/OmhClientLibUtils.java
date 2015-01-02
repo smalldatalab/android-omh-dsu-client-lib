@@ -19,6 +19,7 @@ import android.content.SharedPreferences.Editor;
 import android.util.Log;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.HttpPostRequestFailedException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.NoAccessTokenException;
+import edu.cornell.tech.smalldata.omhclientlib.exceptions.UnauthorizedWriteAttemptException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.UnsuccessfulWriteException;
 
 public class OmhClientLibUtils {
@@ -34,7 +35,7 @@ public class OmhClientLibUtils {
 	 * @throws UnsuccessfulWriteException
 	 */
 	public static void writeDataPointRequest(String entity, Context context)
-			throws NoAccessTokenException, HttpPostRequestFailedException, UnsuccessfulWriteException {
+			throws NoAccessTokenException, HttpPostRequestFailedException, UnsuccessfulWriteException, UnauthorizedWriteAttemptException {
 		
 		StringBuilder urlStringBuilder = new StringBuilder();
 		urlStringBuilder.append(context.getString(R.string.dsu_root_url)).append('/').append("dataPoints");
@@ -63,6 +64,7 @@ public class OmhClientLibUtils {
 		try {
 			
 			httpPost.setEntity(new StringEntity(entity));
+			Log.d(LOG_TAG, entity.substring(0, 50) + "...");
 	
 			httpResponse = httpClient.execute(httpPost);
 			StringBuilder sb = new StringBuilder();
@@ -82,12 +84,15 @@ public class OmhClientLibUtils {
 			Log.d(LOG_TAG, "Response: " + sb.toString());
 			StatusLine statusLine = httpResponse.getStatusLine();
 			Log.d(LOG_TAG, String.format("status code: %d reason: %s", statusLine.getStatusCode(), statusLine.getReasonPhrase()));
-			if (statusLine.getStatusCode() != HttpStatus.SC_CREATED) {
+			if (HttpStatus.SC_UNAUTHORIZED == statusLine.getStatusCode()) {
+				UnauthorizedWriteAttemptException e = new UnauthorizedWriteAttemptException();
+				throw e;
+			} else if (HttpStatus.SC_CREATED != statusLine.getStatusCode()) {
 				UnsuccessfulWriteException e = new UnsuccessfulWriteException();
 				throw e;
 			}
 	
-		} catch (UnsuccessfulWriteException e) {
+		} catch (UnsuccessfulWriteException | UnauthorizedWriteAttemptException e) {
 			throw e;
 		} catch (Throwable tr) {
 			HttpPostRequestFailedException e = new HttpPostRequestFailedException();
