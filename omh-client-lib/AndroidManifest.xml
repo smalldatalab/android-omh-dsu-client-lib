@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="edu.cornell.tech.smalldata.omhclientlib"
-    android:versionCode="7000"
+    android:versionCode="100000"
     android:versionName="@string/omhclientlib_version_name" >
 
     <uses-sdk

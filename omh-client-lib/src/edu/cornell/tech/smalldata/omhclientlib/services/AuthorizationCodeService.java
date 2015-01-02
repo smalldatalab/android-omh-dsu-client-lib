@@ -28,7 +28,6 @@ import com.google.android.gms.plus.Plus;
 import edu.cornell.tech.smalldata.omhclientlib.OmhClientLibConsts;
 import edu.cornell.tech.smalldata.omhclientlib.R;
 import edu.cornell.tech.smalldata.omhclientlib.StartUserInterventionActivity;
-import edu.cornell.tech.smalldata.omhclientlib.R.string;
 
 public class AuthorizationCodeService extends Service implements ConnectionCallbacks, OnConnectionFailedListener {
 
@@ -69,7 +68,11 @@ public class AuthorizationCodeService extends Service implements ConnectionCallb
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		Log.d(LOG_TAG, "finishing " + AuthorizationCodeService.class.getSimpleName());
+		
+		Intent intent = new Intent(OmhClientLibConsts.ACTION_AUTHORIZATION_CODE_SERVICE_FINISHED);
+		mLocalBroadcastManager.sendBroadcast(intent);
+		
+		Log.d(LOG_TAG, AuthorizationCodeService.class.getSimpleName() + " finished."  );
 	}
 
 	public void init() {

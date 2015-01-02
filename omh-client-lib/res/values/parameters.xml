@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="omhclientlib_version_name">0.7.000d</string>
+    <string name="omhclientlib_version_name">1.0.000</string>
     
     <string name="dsu_google_client_id">48636836762-mulldgpmet2r4s3f16s931ea9crcc64m.apps.googleusercontent.com</string>
     

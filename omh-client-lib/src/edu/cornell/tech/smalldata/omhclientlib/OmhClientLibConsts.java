@@ -1,5 +1,7 @@
 package edu.cornell.tech.smalldata.omhclientlib;
 
+import android.content.Intent;
+
 
 public class OmhClientLibConsts {
 	
@@ -10,6 +12,7 @@ public class OmhClientLibConsts {
 	public static final String EXTRA_DSU_INSTANCE_IDENTIFIER = "edu.cornell.tech.smalldata.omhclientlib.DSU_INSTANCE_IDENTIFIER";
 
 	public static final String ACTION_USER_INTERVENTION_SCREEN_FINISHED = "edu.cornell.tech.smalldata.omhclientlib.USER_INTERVENTION_SCREEN_FINISHED";
+	public static final String ACTION_AUTHORIZATION_CODE_SERVICE_FINISHED = "edu.cornell.tech.smalldata.omhclientlib.AUTHORIZATION_CODE_SERVICE_FINISHED";
 
 	public static final String SHARED_PREFERENCES_OMHCLIENTLIB = "shared-preferences-omhclientlib";
 
@@ -21,6 +24,7 @@ public class OmhClientLibConsts {
 
 	public static final String SCHEMA_NAMESPACE = "omh";
 	public static final String SCHEMA_VERSION = "1.0";
+
 
 
 
