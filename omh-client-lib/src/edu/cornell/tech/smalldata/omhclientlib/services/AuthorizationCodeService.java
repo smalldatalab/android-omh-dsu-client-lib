@@ -2,6 +2,8 @@ package edu.cornell.tech.smalldata.omhclientlib.services;
 
 import java.util.UUID;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -15,10 +17,12 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.Builder;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
@@ -92,14 +96,15 @@ public class AuthorizationCodeService extends Service implements ConnectionCallb
 			}
 		};
 
+		
 		mGoogleApiClient = buildGoogleApiClient();
-
+		
 		if (mGoogleApiClient != null) {
 			setState(State.GOOGLE_API_CLIENT_BUILT);
-
+			
 			setState(State.GOOGLE_API_CLIENT_CONNECTING);
 			mGoogleApiClient.connect();
-
+			
 		} else {
 			setState(State.GOOGLE_API_CLIENT_BUILD_FAILED);
 			stopSelf();

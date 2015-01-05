@@ -22,8 +22,15 @@ import edu.cornell.tech.smalldata.omhclientlib.schema.MassUnitValueSchema;
 import edu.cornell.tech.smalldata.omhclientlib.schema.MassUnitValueSchema.Unit;
 import edu.cornell.tech.smalldata.omhclientlib.schema.MassUnitValueSchema.Value;
 import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema;
+import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema.AffectArousal;
+import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema.AffectValence;
+import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema.EffectiveTimeFrame;
+import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema.Mood;
+import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema.NegativeAffect;
 import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema.PositiveAffect;
 import edu.cornell.tech.smalldata.omhclientlib.schema.Schema;
+import edu.cornell.tech.smalldata.omhclientlib.schema.TimeFrameSchema;
+import edu.cornell.tech.smalldata.omhclientlib.schema.TimeFrameSchema.DateTime;
 import edu.cornell.tech.smalldata.omhclientlib.schema.UnitValueSchema;
 
 public class DataPointPayloadCreator {
@@ -169,18 +176,78 @@ public class DataPointPayloadCreator {
 		try {
 			JSONObject bodyJsonObject = new JSONObject();
 			
+			AffectValence propertyAffectValence = pamSchema.getPropertyAffectValence();
+			if (propertyAffectValence != null) {
+				JSONObject affectValenceJsonObject = new JSONObject();
+				
+				UnitValueSchema unitValueSchema = propertyAffectValence.getJsonValue();
+				UnitValueSchema.Unit propertyUnit = unitValueSchema.getPropertyUnit();
+				UnitValueSchema.Value propertyValue = unitValueSchema.getPropertyValue();
+				
+				affectValenceJsonObject.put(propertyUnit.getJsonName(), propertyUnit.getJsonValue());
+				affectValenceJsonObject.put(propertyValue.getJsonName(), propertyValue.getJsonValue());
+				
+				bodyJsonObject.put(propertyAffectValence.getJsonName(), affectValenceJsonObject);
+			}
+			
+			AffectArousal propertyAffectArousal = pamSchema.getPropertyAffectArousal();
+			if (propertyAffectArousal != null) {
+				JSONObject affectArousalJsonObject = new JSONObject();
+				
+				UnitValueSchema unitValueSchema = propertyAffectArousal.getJsonValue();
+				UnitValueSchema.Unit propertyUnit = unitValueSchema.getPropertyUnit();
+				UnitValueSchema.Value propertyValue = unitValueSchema.getPropertyValue();
+				
+				affectArousalJsonObject.put(propertyUnit.getJsonName(), propertyUnit.getJsonValue());
+				affectArousalJsonObject.put(propertyValue.getJsonName(), propertyValue.getJsonValue());
+				
+				bodyJsonObject.put(propertyAffectArousal.getJsonName(), affectArousalJsonObject);
+			}
+			
 			PositiveAffect propertyPositiveAffect = pamSchema.getPropertyPositiveAffect();
+			if (propertyPositiveAffect != null) {
+				JSONObject positiveAffectJsonObject = new JSONObject();
+				
+				UnitValueSchema unitValueSchema = propertyPositiveAffect.getJsonValue();
+				UnitValueSchema.Unit propertyUnit = unitValueSchema.getPropertyUnit();
+				UnitValueSchema.Value propertyValue = unitValueSchema.getPropertyValue();
+				
+				positiveAffectJsonObject.put(propertyUnit.getJsonName(), propertyUnit.getJsonValue());
+				positiveAffectJsonObject.put(propertyValue.getJsonName(), propertyValue.getJsonValue());
+				
+				bodyJsonObject.put(propertyPositiveAffect.getJsonName(), positiveAffectJsonObject);
+			}
 			
-			JSONObject positiveAffectJsonObject = new JSONObject();
+			NegativeAffect propertyNegativeAffect = pamSchema.getPropertyNegativeAffect();
+			if (propertyNegativeAffect != null) {
+				JSONObject negativeAffectJsonObject = new JSONObject();
+				
+				UnitValueSchema unitValueSchema = propertyNegativeAffect.getJsonValue();
+				UnitValueSchema.Unit propertyUnit = unitValueSchema.getPropertyUnit();
+				UnitValueSchema.Value propertyValue = unitValueSchema.getPropertyValue();
+				
+				negativeAffectJsonObject.put(propertyUnit.getJsonName(), propertyUnit.getJsonValue());
+				negativeAffectJsonObject.put(propertyValue.getJsonName(), propertyValue.getJsonValue());
+				
+				bodyJsonObject.put(propertyNegativeAffect.getJsonName(), negativeAffectJsonObject);
+			}
 			
-			UnitValueSchema unitValueSchema = propertyPositiveAffect.getJsonValue();
-			UnitValueSchema.Unit propertyUnit = unitValueSchema.getPropertyUnit();
-			UnitValueSchema.Value propertyValue = unitValueSchema.getPropertyValue();
+			Mood propertyMood = pamSchema.getPropertyMood();
+			if (propertyMood != null) {
+				bodyJsonObject.put(propertyMood.getJsonName(), propertyMood.getJsonValue());
+			}
 			
-			positiveAffectJsonObject.put(propertyUnit.getJsonName(), propertyUnit.getJsonValue());
-			positiveAffectJsonObject.put(propertyValue.getJsonName(), propertyValue.getJsonValue());
-			
-			bodyJsonObject.put(propertyPositiveAffect.getJsonName(), positiveAffectJsonObject);
+			EffectiveTimeFrame propertyEffectiveTimeFrame = pamSchema.getPropertyEffectiveTimeFrame();
+			if (propertyEffectiveTimeFrame != null) {
+				JSONObject effectiveTimeFrameJsonObject = new JSONObject();
+				
+				TimeFrameSchema timeFrameSchema = propertyEffectiveTimeFrame.getJsonValue();
+				DateTime propertyDateTime = timeFrameSchema.getPropertyDateTime();
+				
+				effectiveTimeFrameJsonObject.put(propertyDateTime.getJsonName(), propertyDateTime.getJsonValue());
+				
+				bodyJsonObject.put(propertyEffectiveTimeFrame.getJsonName(), effectiveTimeFrameJsonObject);
+			}
 			
 			payloadJsonObject.put("body", bodyJsonObject); 
 		} 

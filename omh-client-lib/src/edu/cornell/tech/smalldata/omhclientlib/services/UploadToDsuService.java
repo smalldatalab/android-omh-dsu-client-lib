@@ -1,8 +1,29 @@
 package edu.cornell.tech.smalldata.omhclientlib.services;
 
+import static edu.cornell.tech.smalldata.omhclientlib.OmhClientLibSQLiteOpenHelper.COLUMN_NAME_DATPOINT_ID;
+import static edu.cornell.tech.smalldata.omhclientlib.OmhClientLibSQLiteOpenHelper.COLUMN_NAME_PAYLOAD;
+import static edu.cornell.tech.smalldata.omhclientlib.OmhClientLibSQLiteOpenHelper.TABLE_NAME_DATAPOINT;
+import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Looper;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
+import android.widget.Toast;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+
 import edu.cornell.tech.smalldata.omhclientlib.OmhClientLibConsts;
 import edu.cornell.tech.smalldata.omhclientlib.OmhClientLibSQLiteOpenHelper;
 import edu.cornell.tech.smalldata.omhclientlib.OmhClientLibUtils;
+import edu.cornell.tech.smalldata.omhclientlib.R;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.ExchangingAuthCodeForTokensException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.HttpPostRequestFailedException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.NoAccessTokenException;
@@ -10,19 +31,6 @@ import edu.cornell.tech.smalldata.omhclientlib.exceptions.NoRefreshTokenExceptio
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.UnauthorizedWriteAttemptException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.UnsuccessfulDatapointUploadException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.UnsuccessfulWriteToDsuException;
-import edu.cornell.tech.smalldata.omhclientlib.services.AuthorizationCodeService.State;
-import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.os.IBinder;
-import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
-import static edu.cornell.tech.smalldata.omhclientlib.OmhClientLibSQLiteOpenHelper.*;
 
 /**
  * Checks SQLite DATAPOINT table and tries to upload to DSU all datapoints stored in it.
@@ -107,7 +115,32 @@ public class UploadToDsuService extends Service {
 	}
 
 	private boolean checkConnectivity() {
-		return true;
+		
+		boolean ok = false;
+		boolean exception = false;
+		int status = -1;
+		try {
+			status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(mContext);
+		} catch (Exception e) {
+			exception = true;
+		}
+		if ((status != ConnectionResult.SUCCESS) || exception) {
+			
+			Handler handler = new Handler(Looper.getMainLooper());
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					
+					Toast.makeText(mContext, R.string.google_play_services_not_available_message, Toast.LENGTH_LONG).show();
+				}
+			};
+			handler.post(runnable);
+			
+		} else {
+			ok = true;
+		}
+		
+		return ok;
 	}
 
 	private void uploadDatapoints() throws UnsuccessfulDatapointUploadException {
