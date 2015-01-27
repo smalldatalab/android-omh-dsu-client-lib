@@ -1,4 +1,4 @@
-package edu.cornell.tech.smalldata.omhclientlib.schema;
+package edu.cornell.tech.smalldata.omhclientlib.exceptions;
 
 public class UnsupportedOmhSchemaException extends Exception {
 

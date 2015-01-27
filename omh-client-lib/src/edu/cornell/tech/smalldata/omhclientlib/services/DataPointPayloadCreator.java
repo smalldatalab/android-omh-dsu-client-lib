@@ -3,6 +3,7 @@ package edu.cornell.tech.smalldata.omhclientlib.services;
 import java.util.Calendar;
 import java.util.TimeZone;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -18,9 +19,18 @@ import edu.cornell.tech.smalldata.omhclientlib.exceptions.PayloadBodyNotCreatedE
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.RequestBodyNotCreatedException;
 import edu.cornell.tech.smalldata.omhclientlib.schema.BodyWeightSchema;
 import edu.cornell.tech.smalldata.omhclientlib.schema.BodyWeightSchema.BodyWeight;
+import edu.cornell.tech.smalldata.omhclientlib.schema.LocationSchema;
+import edu.cornell.tech.smalldata.omhclientlib.schema.LocationSchema.Accuracy;
+import edu.cornell.tech.smalldata.omhclientlib.schema.LocationSchema.Altitude;
+import edu.cornell.tech.smalldata.omhclientlib.schema.LocationSchema.Bearing;
+import edu.cornell.tech.smalldata.omhclientlib.schema.LocationSchema.Latitude;
+import edu.cornell.tech.smalldata.omhclientlib.schema.LocationSchema.Longitude;
+import edu.cornell.tech.smalldata.omhclientlib.schema.LocationSchema.Speed;
 import edu.cornell.tech.smalldata.omhclientlib.schema.MassUnitValueSchema;
 import edu.cornell.tech.smalldata.omhclientlib.schema.MassUnitValueSchema.Unit;
 import edu.cornell.tech.smalldata.omhclientlib.schema.MassUnitValueSchema.Value;
+import edu.cornell.tech.smalldata.omhclientlib.schema.ProbableActivitySchema.Activity;
+import edu.cornell.tech.smalldata.omhclientlib.schema.ProbableActivitySchema.Confidence;
 import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema;
 import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema.AffectArousal;
 import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema.AffectValence;
@@ -28,6 +38,8 @@ import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema.EffectiveTimeFra
 import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema.Mood;
 import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema.NegativeAffect;
 import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema.PositiveAffect;
+import edu.cornell.tech.smalldata.omhclientlib.schema.MobilitySchema;
+import edu.cornell.tech.smalldata.omhclientlib.schema.ProbableActivitySchema;
 import edu.cornell.tech.smalldata.omhclientlib.schema.Schema;
 import edu.cornell.tech.smalldata.omhclientlib.schema.TimeFrameSchema;
 import edu.cornell.tech.smalldata.omhclientlib.schema.TimeFrameSchema.DateTime;
@@ -37,6 +49,8 @@ public class DataPointPayloadCreator {
 	
 	private static final int DATAPOINT_BODY_WEIGHT = 1;
 	private static final int DATAPOINT_PAM = 2;
+	private static final int DATAPOINT_LOCATION = 3;
+	private static final int DATAPOINT_MOBILITY = 4;
 	private static final String LOG_TAG = OmhClientLibConsts.APP_LOG_TAG;
 	
 	private Context mContext;
@@ -44,17 +58,35 @@ public class DataPointPayloadCreator {
 	public static String createBodyWeight(final Context context, final BodyWeightSchema bodyWeightSchema) {
 		String payload = null;
 		
-		DataPointPayloadCreator dataPointCreator = new DataPointPayloadCreator(context);
-		payload = dataPointCreator.startCreation(DATAPOINT_BODY_WEIGHT, bodyWeightSchema);
+		DataPointPayloadCreator dataPointPayloadCreator = new DataPointPayloadCreator(context);
+		payload = dataPointPayloadCreator.startCreation(DATAPOINT_BODY_WEIGHT, bodyWeightSchema);
+		
+		return payload;
+	}
+	
+	public static String createPam(final Context context, final PamSchema pamSchema) {
+		String payload = null;
+		
+		DataPointPayloadCreator dataPointPayloadCreator = new DataPointPayloadCreator(context);
+		payload = dataPointPayloadCreator.startCreation(DATAPOINT_PAM, pamSchema);
+		
+		return payload;
+	}
+	
+	public static String createLocation(final Context context, final LocationSchema locationSchema) {
+		String payload = null;
+		
+		DataPointPayloadCreator dataPointPayloadCreator = new DataPointPayloadCreator(context);
+		payload = dataPointPayloadCreator.startCreation(DATAPOINT_LOCATION, locationSchema);
 		
 		return payload;
 	}
 
-	public static String createPam(final Context context, final PamSchema pamSchema) {
+	public static String createMobility(final Context context, final MobilitySchema mobilitySchema) {
 		String payload = null;
 		
-		DataPointPayloadCreator dataPointCreator = new DataPointPayloadCreator(context);
-		payload = dataPointCreator.startCreation(DATAPOINT_PAM, pamSchema);
+		DataPointPayloadCreator dataPointPayloadCreator = new DataPointPayloadCreator(context);
+		payload = dataPointPayloadCreator.startCreation(DATAPOINT_MOBILITY, mobilitySchema);
 		
 		return payload;
 	}
@@ -93,6 +125,26 @@ public class DataPointPayloadCreator {
 			}
 			
 			break;
+		case DATAPOINT_LOCATION:
+			
+			try {
+				payload = handleCreationLocation((LocationSchema) schema);
+			} catch (RequestBodyNotCreatedException e) {
+				DatapointCreationFailedException e1 = new DatapointCreationFailedException();
+				e1.addSuppressed(e);
+			}
+			
+			break;
+		case DATAPOINT_MOBILITY:
+			
+			try {
+				payload = handleCreationMobility((MobilitySchema) schema);
+			} catch (RequestBodyNotCreatedException e) {
+				DatapointCreationFailedException e1 = new DatapointCreationFailedException();
+				e1.addSuppressed(e);
+			}
+			
+			break;
 		default:
 			break;
 		}
@@ -114,7 +166,7 @@ public class DataPointPayloadCreator {
 		return payload;
 		
 	}
-
+	
 	private String handleCreationPam(PamSchema pamSchema) throws RequestBodyNotCreatedException {
 		
 		String payload;
@@ -127,9 +179,39 @@ public class DataPointPayloadCreator {
 		}
 		
 		return payload;
-	
+		
 	}
 	
+	private String handleCreationLocation(LocationSchema locationSchema) throws RequestBodyNotCreatedException {
+		
+		String payload;
+		try { 
+			payload = formPayloadLocation(locationSchema); 
+		} catch (HeaderNotInsertedException | PayloadBodyNotCreatedException e) {
+			RequestBodyNotCreatedException e1 = new RequestBodyNotCreatedException();
+			e1.addSuppressed(e);
+			throw e1;
+		}
+		
+		return payload;
+	
+	}
+
+	private String handleCreationMobility(MobilitySchema mobilitySchema) throws RequestBodyNotCreatedException {
+		
+		String payload;
+		try { 
+			payload = formPayloadMobility(mobilitySchema); 
+		} catch (HeaderNotInsertedException | PayloadBodyNotCreatedException e) {
+			RequestBodyNotCreatedException e1 = new RequestBodyNotCreatedException();
+			e1.addSuppressed(e);
+			throw e1;
+		}
+		
+		return payload;
+		
+	}
+
 	private String formPayloadBodyWeight(BodyWeightSchema bodyWeightSchema) throws HeaderNotInsertedException, PayloadBodyNotCreatedException {
 		
 		JSONObject payloadJsonObject = new JSONObject();
@@ -165,7 +247,7 @@ public class DataPointPayloadCreator {
 		
 		return payloadJsonObject.toString();
 	}
-
+	
 	private String formPayloadPam(PamSchema pamSchema) throws HeaderNotInsertedException, PayloadBodyNotCreatedException {
 		
 		JSONObject payloadJsonObject = new JSONObject();
@@ -248,6 +330,107 @@ public class DataPointPayloadCreator {
 				
 				bodyJsonObject.put(propertyEffectiveTimeFrame.getJsonName(), effectiveTimeFrameJsonObject);
 			}
+			
+			payloadJsonObject.put("body", bodyJsonObject); 
+		} 
+		catch (JSONException e) {
+			PayloadBodyNotCreatedException e1 = new PayloadBodyNotCreatedException();
+			e1.addSuppressed(e);
+			throw e1;
+		}
+		
+		try { Log.d(LOG_TAG, payloadJsonObject.toString(2)); } catch (JSONException e) {}
+		
+		return payloadJsonObject.toString();
+	}
+	
+	private String formPayloadLocation(LocationSchema locationSchema) throws HeaderNotInsertedException, PayloadBodyNotCreatedException {
+		
+		JSONObject payloadJsonObject = new JSONObject();
+		
+		String id = OmhClientLibUtils.nextDataPointId(mContext);
+		insertPayloadHeader(payloadJsonObject, id, locationSchema, AcquisitionProvenanceModality.SENSED);
+		
+		try {
+			JSONObject bodyJsonObject = new JSONObject();
+			
+			Latitude propertyLatitude = locationSchema.getPropertyLatitude();
+			if (propertyLatitude != null) {
+				bodyJsonObject.put(propertyLatitude.getJsonName(), propertyLatitude.getJsonValue());
+			}
+			
+			Longitude propertyLongitude = locationSchema.getPropertyLongitude();
+			if (propertyLongitude != null) {
+				bodyJsonObject.put(propertyLongitude.getJsonName(), propertyLongitude.getJsonValue());
+			}
+			
+			Accuracy propertyAccuracy = locationSchema.getPropertyAccuracy();
+			if (propertyAccuracy != null) {
+				bodyJsonObject.put(propertyAccuracy.getJsonName(), propertyAccuracy.getJsonValue());
+			}
+			
+			Altitude propertyAltitude = locationSchema.getPropertyAltitude();
+			if (propertyAltitude != null) {
+				bodyJsonObject.put(propertyAltitude.getJsonName(), propertyAltitude.getJsonValue());
+			}
+			
+			Bearing propertyBearing = locationSchema.getPropertyBearing();
+			if (propertyBearing != null) {
+				bodyJsonObject.put(propertyBearing.getJsonName(), propertyBearing.getJsonValue());
+			}
+			
+			Speed propertySpeed = locationSchema.getPropertySpeed();
+			if (propertySpeed != null) {
+				bodyJsonObject.put(propertySpeed.getJsonName(), propertySpeed.getJsonValue());
+			}
+			
+			payloadJsonObject.put("body", bodyJsonObject); 
+		} 
+		catch (JSONException e) {
+			PayloadBodyNotCreatedException e1 = new PayloadBodyNotCreatedException();
+			e1.addSuppressed(e);
+			throw e1;
+		}
+		
+		try { Log.d(LOG_TAG, payloadJsonObject.toString(2)); } catch (JSONException e) {}
+		
+		return payloadJsonObject.toString();
+	}
+
+	private String formPayloadMobility(MobilitySchema mobilitySchema) throws HeaderNotInsertedException, PayloadBodyNotCreatedException {
+		
+		JSONObject payloadJsonObject = new JSONObject();
+		
+		String id = OmhClientLibUtils.nextDataPointId(mContext);
+		insertPayloadHeader(payloadJsonObject, id, mobilitySchema, AcquisitionProvenanceModality.SENSED);
+		
+		try {
+			JSONObject bodyJsonObject = new JSONObject();
+			
+			JSONArray probableActivitiesJsonArray = new JSONArray();
+			
+			ProbableActivitySchema[] probableActivitySchemas = mobilitySchema.getPropertyProbableActivities();
+			
+			for (int i = 0; i < probableActivitySchemas.length; i++) {
+				
+				ProbableActivitySchema probableActivitySchema = probableActivitySchemas[i];
+				
+				JSONObject probableActivityJsonObject = new JSONObject();
+				
+				Activity propertyActivity = probableActivitySchema.getPropertyActivity();
+				if (propertyActivity != null) {
+					probableActivityJsonObject.put(propertyActivity.getJsonName(), propertyActivity.getJsonValue());
+				}
+
+				Confidence propertyConfidence = probableActivitySchema.getPropertyConfidence();
+				if (propertyConfidence != null) {
+					probableActivityJsonObject.put(propertyConfidence.getJsonName(), propertyConfidence.getJsonValue());
+				}
+				
+				probableActivitiesJsonArray.put(probableActivityJsonObject);
+			}
+			
+			bodyJsonObject.put("", probableActivitiesJsonArray);
 			
 			payloadJsonObject.put("body", bodyJsonObject); 
 		} 

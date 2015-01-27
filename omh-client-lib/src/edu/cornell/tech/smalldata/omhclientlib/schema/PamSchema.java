@@ -10,12 +10,12 @@ public class PamSchema implements Schema {
 		return "pam";
 	}
 	
-	private AffectValence affectValence;
-	private AffectArousal affectArousal;
-	private PositiveAffect positiveAffect;
-	private NegativeAffect negativeAffect;
-	private Mood mood;
-	private EffectiveTimeFrame effectiveTimeFrame;
+	private AffectValence mAffectValence;
+	private AffectArousal mAffectArousal;
+	private PositiveAffect mPositiveAffect;
+	private NegativeAffect mNegativeAffect;
+	private Mood mMood;
+	private EffectiveTimeFrame mEffectiveTimeFrame;
 	
 	public PamSchema(int position, Calendar calendar) {
 		
@@ -51,37 +51,37 @@ public class PamSchema implements Schema {
 		TimeFrameSchema timeFrameSchema = new TimeFrameSchema(dateTime);
 		EffectiveTimeFrame propertyEffectiveTimeFrame = new EffectiveTimeFrame(timeFrameSchema);
 		
-		this.affectValence = propertyAffectValence;
-		this.affectArousal = propertyAffectArousal;
-		this.positiveAffect = propertyPositiveAffect;
-		this.negativeAffect = propertyNegativeAffect;
-		this.mood = propertyMood;
-		this.effectiveTimeFrame = propertyEffectiveTimeFrame;
+		this.mAffectValence = propertyAffectValence;
+		this.mAffectArousal = propertyAffectArousal;
+		this.mPositiveAffect = propertyPositiveAffect;
+		this.mNegativeAffect = propertyNegativeAffect;
+		this.mMood = propertyMood;
+		this.mEffectiveTimeFrame = propertyEffectiveTimeFrame;
 		
 	}
 	
 	public AffectValence getPropertyAffectValence() {
-		return affectValence;
+		return mAffectValence;
 	}
 	
 	public AffectArousal getPropertyAffectArousal() {
-		return affectArousal;
+		return mAffectArousal;
 	}
 	
 	public PositiveAffect getPropertyPositiveAffect() {
-		return positiveAffect;
+		return mPositiveAffect;
 	}
 	
 	public NegativeAffect getPropertyNegativeAffect() {
-		return negativeAffect;
+		return mNegativeAffect;
 	}
 	
 	public Mood getPropertyMood() {
-		return mood;
+		return mMood;
 	}
 	
 	public EffectiveTimeFrame getPropertyEffectiveTimeFrame() {
-		return effectiveTimeFrame;
+		return mEffectiveTimeFrame;
 	}
 
 	private int arousal(int position) {
