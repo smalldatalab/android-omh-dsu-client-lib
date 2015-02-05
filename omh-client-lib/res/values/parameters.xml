@@ -14,5 +14,7 @@
     <string name="apps_dsu_client_secret">5Eo43jkLD7z76c</string>
     
     <string name="acquisition_provenance_source_name">ohmagePAM</string>
+    
+    <string name="omhclientlib_display_datapoint_submitted_message">yes</string>
 
 </resources>

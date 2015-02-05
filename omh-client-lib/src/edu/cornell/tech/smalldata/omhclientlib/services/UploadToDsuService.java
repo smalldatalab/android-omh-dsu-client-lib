@@ -154,7 +154,6 @@ public class UploadToDsuService extends Service {
 		Log.d(LOG_TAG, "Returned " + cursor.getCount() + " records.");
 		
 		boolean exitPayloadsLoop = false;
-		int count = 0;
 		while (cursor.moveToNext() && !exitPayloadsLoop) {
 			
 			String payload = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_PAYLOAD));
@@ -168,7 +167,6 @@ public class UploadToDsuService extends Service {
 					
 					String[] dataPointId = {Integer.toString(cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_DATPOINT_ID)))};
 					int rowsDeleted = database.delete(TABLE_NAME_DATAPOINT, COLUMN_NAME_DATPOINT_ID + " = ?", dataPointId);
-					count++;
 					Log.d(LOG_TAG, "deleting datapoint_id " + dataPointId[0] + ", rows deleted: " + rowsDeleted);
 					
 				} catch (NoAccessTokenException e) {
@@ -195,19 +193,6 @@ public class UploadToDsuService extends Service {
 		
 		cursor.close();
 		database.close();
-		
-		if (count > 0) {
-			final int displayCount = count;
-			Handler handler = new Handler(Looper.getMainLooper());
-			Runnable runnable = new Runnable() {
-				@Override
-				public void run() {
-					String text = (displayCount == 1 ? "Datapoint" : String.format("%d datapoints", displayCount)) + " uploaded to DSU.";
-					Toast.makeText(mContext, text, Toast.LENGTH_LONG).show();
-				}
-			};
-			handler.post(runnable);
-		}
 		
 	}
 

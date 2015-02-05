@@ -10,6 +10,7 @@ import android.util.Log;
 import android.widget.Toast;
 import edu.cornell.tech.smalldata.omhclientlib.OmhClientLibConsts;
 import edu.cornell.tech.smalldata.omhclientlib.OmhClientLibSQLiteOpenHelper;
+import edu.cornell.tech.smalldata.omhclientlib.R;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.UnsupportedOmhSchemaException;
 import edu.cornell.tech.smalldata.omhclientlib.schema.BodyWeightSchema;
 import edu.cornell.tech.smalldata.omhclientlib.schema.LocationSchema;
@@ -85,15 +86,18 @@ public class OmhDsuWriter {
 		long rowId = database.insert(table, null, contentValues);
 		Log.d(LOG_TAG, "row id: " + rowId);
 		
-//		Handler handler = new Handler(Looper.getMainLooper());
-//		Runnable runnable = new Runnable() {
-//			@Override
-//			public void run() {
-//				String text = "Your response has been submitted.";
-//				Toast.makeText(mContext, text, Toast.LENGTH_LONG).show();
-//			}
-//		};
-//		handler.post(runnable);
+		if (mContext.getString(R.string.omhclientlib_display_datapoint_submitted_message).toLowerCase().equals("yes")) {
+			
+			Handler handler = new Handler(mContext.getMainLooper());
+			Runnable runnable = new Runnable() {
+				@Override
+				public void run() {
+					String text = "Your response has been submitted.";
+					Toast.makeText(mContext, text, Toast.LENGTH_LONG).show();
+				}
+			};
+			handler.post(runnable);
+		}
 		
 		database.close();
 		
