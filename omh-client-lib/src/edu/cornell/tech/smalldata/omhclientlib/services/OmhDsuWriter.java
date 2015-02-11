@@ -1,15 +1,19 @@
 package edu.cornell.tech.smalldata.omhclientlib.services;
 
+import android.accounts.Account;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 import edu.cornell.tech.smalldata.omhclientlib.OmhClientLibConsts;
 import edu.cornell.tech.smalldata.omhclientlib.OmhClientLibSQLiteOpenHelper;
+import edu.cornell.tech.smalldata.omhclientlib.OmhClientLibUtils;
 import edu.cornell.tech.smalldata.omhclientlib.R;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.UnsupportedOmhSchemaException;
 import edu.cornell.tech.smalldata.omhclientlib.schema.BodyWeightSchema;
@@ -24,6 +28,8 @@ public class OmhDsuWriter {
 	
 	private Context mContext;
 
+	private Account mAccount;
+
 	public static void writeDataPoint(Context context, Schema schema) {
 		
 		OmhDsuWriter omhDsuWriter = new OmhDsuWriter(context);
@@ -32,6 +38,7 @@ public class OmhDsuWriter {
 	
 	public OmhDsuWriter(Context context) {
 		this.mContext = context;
+		mAccount = OmhClientLibUtils.createSyncAdapterAccount(context);
 	}
 
 	private void startWrite(final Schema schema) {
@@ -43,8 +50,14 @@ public class OmhDsuWriter {
 				try {
 					handleWrite(schema);
 					
-					Intent serviceIntent = new Intent(mContext, UploadToDsuService.class);
-					mContext.startService(serviceIntent);
+					Bundle settingsBundle = new Bundle();
+			        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+			        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+					
+					String authority = mContext.getString(R.string.omhclientlib_syncadapter_provider_authority);
+					
+					ContentResolver.requestSync(mAccount, authority, settingsBundle);
+					
 				} catch (UnsupportedOmhSchemaException e) {
 					Log.e(LOG_TAG, "Unsuccessful OmH write", e);
 				}

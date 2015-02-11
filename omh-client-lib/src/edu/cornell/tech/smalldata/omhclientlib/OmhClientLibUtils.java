@@ -23,15 +23,17 @@ import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.util.Base64;
 import android.util.Log;
+import edu.cornell.tech.smalldata.omhclientlib.exceptions.ExchangingAuthCodeForTokensException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.HttpPostRequestFailedException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.NoAccessTokenException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.NoRefreshTokenException;
-import edu.cornell.tech.smalldata.omhclientlib.exceptions.ExchangingAuthCodeForTokensException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.TokensResponseNotValidJsonException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.UnauthorizedWriteAttemptException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.UnsuccessfulWriteToDsuException;
@@ -420,5 +422,34 @@ public class OmhClientLibUtils {
 		Log.d(LOG_TAG, "Access token invalidated.");
 		
 	}
+	
+	public static Account createSyncAdapterAccount(Context context) {
+		
+		Account account = null;
+		
+        String accountName = OmhClientLibConsts.ACCOUNT;
+		String accountType = OmhClientLibConsts.ACCOUNT_TYPE;
+        
+        AccountManager accountManager = (AccountManager) context.getSystemService(Context.ACCOUNT_SERVICE);
+        
+        Account[] omhClientLibAccounts = accountManager.getAccountsByType(accountType);
+        
+        if (omhClientLibAccounts.length == 0) {
+        	
+        	Account newAccount = new Account(accountName, accountType);
+        	
+        	if (accountManager.addAccountExplicitly(newAccount, null, null)) {
+        		Log.d(LOG_TAG, String.format("Account %s / %s created.", accountType, accountName) ); 
+        		account = newAccount;
+        	} else {
+        		/* The account exists or some other error occurred. */
+        	}
+        	
+		} else {
+			account = omhClientLibAccounts[0];
+		}
+        
+        return account;
+    }
 	
 }

@@ -25,8 +25,8 @@ public class OmhClientLibConsts {
 	public static final String SCHEMA_NAMESPACE = "omh";
 	public static final String SCHEMA_VERSION = "1.0";
 
-
-
+	public static final String ACCOUNT = "dummyaccount";
+	public static final String ACCOUNT_TYPE = "edu.cornell.tech.smalldata.omhclientlib";
 
 	public static String sPayload;
 
