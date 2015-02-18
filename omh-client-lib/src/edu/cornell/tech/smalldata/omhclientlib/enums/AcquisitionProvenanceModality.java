@@ -2,7 +2,8 @@ package edu.cornell.tech.smalldata.omhclientlib.enums;
 
 public enum AcquisitionProvenanceModality {
 	
-	SENSED;
+	SENSED,
+	SELF_REPORTED;
 
 	public String inJson() {
 		String returnValue = null;
@@ -10,6 +11,9 @@ public enum AcquisitionProvenanceModality {
 		switch (this) {
 		case SENSED:
 			returnValue = "sensed";
+			break;
+		case SELF_REPORTED:
+			returnValue = "self reported";
 			break;
 		default:
 			break;

@@ -19,6 +19,7 @@ import edu.cornell.tech.smalldata.omhclientlib.exceptions.UnsupportedOmhSchemaEx
 import edu.cornell.tech.smalldata.omhclientlib.schema.BodyWeightSchema;
 import edu.cornell.tech.smalldata.omhclientlib.schema.LocationSchema;
 import edu.cornell.tech.smalldata.omhclientlib.schema.MobilitySchema;
+import edu.cornell.tech.smalldata.omhclientlib.schema.OhmageResponseSchema;
 import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema;
 import edu.cornell.tech.smalldata.omhclientlib.schema.Schema;
 
@@ -50,13 +51,22 @@ public class OmhDsuWriter {
 				try {
 					handleWrite(schema);
 					
-					Bundle settingsBundle = new Bundle();
-			        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
-			        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
-					
-					String authority = mContext.getString(R.string.omhclientlib_syncadapter_provider_authority);
-					
-					ContentResolver.requestSync(mAccount, authority, settingsBundle);
+					if ("yes".equals(mContext.getString(R.string.omhclientlib_use_sync_adapter).toLowerCase())) {
+						
+						Bundle settingsBundle = new Bundle();
+						settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+						settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+						
+						String authority = mContext.getString(R.string.omhclientlib_syncadapter_provider_authority);
+						
+						ContentResolver.requestSync(mAccount, authority, settingsBundle);
+						
+					} else {
+						
+						Intent serviceIntent = new Intent(mContext, UploadToDsuService.class);
+						mContext.startService(serviceIntent);
+						
+					}
 					
 				} catch (UnsupportedOmhSchemaException e) {
 					Log.e(LOG_TAG, "Unsuccessful OmH write", e);
@@ -78,6 +88,8 @@ public class OmhDsuWriter {
 			payload = DataPointPayloadCreator.createLocation(mContext, (LocationSchema) schema);
 		} else if (schema instanceof MobilitySchema) {
 			payload = DataPointPayloadCreator.createMobility(mContext, (MobilitySchema) schema);
+		} else if (schema instanceof OhmageResponseSchema) {
+			payload = DataPointPayloadCreator.createOhmageResponse(mContext, (OhmageResponseSchema) schema);
 		} else {
 			throw new UnsupportedOmhSchemaException();
 		}

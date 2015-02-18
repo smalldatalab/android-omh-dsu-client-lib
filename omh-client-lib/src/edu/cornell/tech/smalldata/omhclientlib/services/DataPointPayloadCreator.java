@@ -29,8 +29,9 @@ import edu.cornell.tech.smalldata.omhclientlib.schema.LocationSchema.Speed;
 import edu.cornell.tech.smalldata.omhclientlib.schema.MassUnitValueSchema;
 import edu.cornell.tech.smalldata.omhclientlib.schema.MassUnitValueSchema.Unit;
 import edu.cornell.tech.smalldata.omhclientlib.schema.MassUnitValueSchema.Value;
-import edu.cornell.tech.smalldata.omhclientlib.schema.ProbableActivitySchema.Activity;
-import edu.cornell.tech.smalldata.omhclientlib.schema.ProbableActivitySchema.Confidence;
+import edu.cornell.tech.smalldata.omhclientlib.schema.MobilitySchema;
+import edu.cornell.tech.smalldata.omhclientlib.schema.OhmageResponseSchema;
+import edu.cornell.tech.smalldata.omhclientlib.schema.OhmageResponseSchema.OhmageData;
 import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema;
 import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema.AffectArousal;
 import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema.AffectValence;
@@ -38,8 +39,9 @@ import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema.EffectiveTimeFra
 import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema.Mood;
 import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema.NegativeAffect;
 import edu.cornell.tech.smalldata.omhclientlib.schema.PamSchema.PositiveAffect;
-import edu.cornell.tech.smalldata.omhclientlib.schema.MobilitySchema;
 import edu.cornell.tech.smalldata.omhclientlib.schema.ProbableActivitySchema;
+import edu.cornell.tech.smalldata.omhclientlib.schema.ProbableActivitySchema.Activity;
+import edu.cornell.tech.smalldata.omhclientlib.schema.ProbableActivitySchema.Confidence;
 import edu.cornell.tech.smalldata.omhclientlib.schema.Schema;
 import edu.cornell.tech.smalldata.omhclientlib.schema.TimeFrameSchema;
 import edu.cornell.tech.smalldata.omhclientlib.schema.TimeFrameSchema.DateTime;
@@ -51,6 +53,7 @@ public class DataPointPayloadCreator {
 	private static final int DATAPOINT_PAM = 2;
 	private static final int DATAPOINT_LOCATION = 3;
 	private static final int DATAPOINT_MOBILITY = 4;
+	private static final int DATAPOINT_OHMAGE_RESPONSE = 5;
 	private static final String LOG_TAG = OmhClientLibConsts.APP_LOG_TAG;
 	
 	private Context mContext;
@@ -81,12 +84,21 @@ public class DataPointPayloadCreator {
 		
 		return payload;
 	}
-
+	
 	public static String createMobility(final Context context, final MobilitySchema mobilitySchema) {
 		String payload = null;
 		
 		DataPointPayloadCreator dataPointPayloadCreator = new DataPointPayloadCreator(context);
 		payload = dataPointPayloadCreator.startCreation(DATAPOINT_MOBILITY, mobilitySchema);
+		
+		return payload;
+	}
+
+	public static String createOhmageResponse(final Context context, final OhmageResponseSchema ohmageResponseSchema) {
+		String payload = null;
+		
+		DataPointPayloadCreator dataPointPayloadCreator = new DataPointPayloadCreator(context);
+		payload = dataPointPayloadCreator.startCreation(DATAPOINT_OHMAGE_RESPONSE, ohmageResponseSchema);
 		
 		return payload;
 	}
@@ -139,6 +151,16 @@ public class DataPointPayloadCreator {
 			
 			try {
 				payload = handleCreationMobility((MobilitySchema) schema);
+			} catch (RequestBodyNotCreatedException e) {
+				DatapointCreationFailedException e1 = new DatapointCreationFailedException();
+				e1.addSuppressed(e);
+			}
+			
+			break;
+		case DATAPOINT_OHMAGE_RESPONSE:
+			
+			try {
+				payload = handleCreationOhmageResponse((OhmageResponseSchema) schema);
 			} catch (RequestBodyNotCreatedException e) {
 				DatapointCreationFailedException e1 = new DatapointCreationFailedException();
 				e1.addSuppressed(e);
@@ -202,6 +224,21 @@ public class DataPointPayloadCreator {
 		String payload;
 		try { 
 			payload = formPayloadMobility(mobilitySchema); 
+		} catch (HeaderNotInsertedException | PayloadBodyNotCreatedException e) {
+			RequestBodyNotCreatedException e1 = new RequestBodyNotCreatedException();
+			e1.addSuppressed(e);
+			throw e1;
+		}
+		
+		return payload;
+		
+	}
+	
+	private String handleCreationOhmageResponse(OhmageResponseSchema ohmageResponseSchema) throws RequestBodyNotCreatedException {
+		
+		String payload;
+		try { 
+			payload = formPayloadOhmageResponse(ohmageResponseSchema); 
 		} catch (HeaderNotInsertedException | PayloadBodyNotCreatedException e) {
 			RequestBodyNotCreatedException e1 = new RequestBodyNotCreatedException();
 			e1.addSuppressed(e);
@@ -445,6 +482,35 @@ public class DataPointPayloadCreator {
 		return payloadJsonObject.toString();
 	}
 
+	private String formPayloadOhmageResponse(OhmageResponseSchema ohmageResponseSchema) throws HeaderNotInsertedException, PayloadBodyNotCreatedException {
+		
+		JSONObject payloadJsonObject = new JSONObject();
+		
+		String id = OmhClientLibUtils.nextDataPointId(mContext);
+		insertPayloadHeader(payloadJsonObject, id, ohmageResponseSchema, AcquisitionProvenanceModality.SELF_REPORTED);
+		
+		try {
+			JSONObject bodyJsonObject = new JSONObject();
+			
+			OhmageData ohmageData = ohmageResponseSchema.getPropertyOhmageData();
+			if (ohmageData != null) {
+				bodyJsonObject.put(ohmageData.getJsonName(), ohmageData.getJsonValue());
+			}
+						
+			payloadJsonObject.put("body", bodyJsonObject); 
+		} 
+		catch (JSONException e) {
+			PayloadBodyNotCreatedException e1 = new PayloadBodyNotCreatedException();
+			e1.addSuppressed(e);
+			throw e1;
+		}
+		
+		try { Log.d(LOG_TAG, payloadJsonObject.toString(2)); } catch (JSONException e) {}
+		
+		return payloadJsonObject.toString();
+	}
+
+	
 	private void insertPayloadHeader(JSONObject jsonObject, String id, Schema schema, AcquisitionProvenanceModality acquisitionProvenanceModality) throws HeaderNotInsertedException {
 		
 		JSONObject headerJsonObject = new JSONObject();
@@ -478,6 +544,5 @@ public class DataPointPayloadCreator {
 		}
 		
 	}
-
 
 }

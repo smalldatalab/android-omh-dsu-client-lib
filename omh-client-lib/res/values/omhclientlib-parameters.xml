@@ -14,5 +14,7 @@
     <string name="omhclientlib_display_datapoint_submitted_message">yes</string>
     
     <string name="omhclientlib_syncadapter_provider_authority">edu.cornell.tech.smalldata.omhclientlib.syncadapter.provider</string>
+    
+    <string name="omhclientlib_use_sync_adapter">yes</string>
 
 </resources>
