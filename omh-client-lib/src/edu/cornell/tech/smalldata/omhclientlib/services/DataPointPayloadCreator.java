@@ -519,8 +519,8 @@ public class DataPointPayloadCreator {
 			
 			headerJsonObject.put("id", id);
 			
-			Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-			String creationDateTime = String.format("%tFT%<tTZ", cal);
+			Calendar cal = Calendar.getInstance();
+			String creationDateTime = String.format("%tFT%<tT%<tz", cal);
 			
 			headerJsonObject.put("creation_date_time", creationDateTime);
 			
