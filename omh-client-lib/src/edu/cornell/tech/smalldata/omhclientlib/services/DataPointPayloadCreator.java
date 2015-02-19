@@ -1,6 +1,8 @@
 package edu.cornell.tech.smalldata.omhclientlib.services;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.TimeZone;
 
 import org.json.JSONArray;
@@ -519,8 +521,18 @@ public class DataPointPayloadCreator {
 			
 			headerJsonObject.put("id", id);
 			
-			Calendar cal = Calendar.getInstance();
-			String creationDateTime = String.format("%tFT%<tT%<tz", cal);
+			String pattern = "yyyy-MM-dd'T'HH:mm:ss";
+			SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+			
+			String timeZonePattern = "Z";
+			SimpleDateFormat timeZoneSdf = new SimpleDateFormat(timeZonePattern);
+			
+			Date date = new Date();
+			
+			String timeZone = timeZoneSdf.format(date);
+			String timeZone2 = timeZone.substring(0, 3) + ":" + timeZone.substring(3, 5); 
+			
+			String creationDateTime = sdf.format(date) + timeZone2;
 			
 			headerJsonObject.put("creation_date_time", creationDateTime);
 			
