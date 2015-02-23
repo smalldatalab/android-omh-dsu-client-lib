@@ -151,7 +151,7 @@ public class OmhClientLibUtils {
 		return refreshToken;
 	}
 
-	public static String installationId(Context context) {
+	public static synchronized String installationId(Context context) {
 		String installationId = null;
 		
 		SharedPreferences libSharedPreferences = context.getSharedPreferences(OmhClientLibConsts.SHARED_PREFERENCES_OMHCLIENTLIB, Context.MODE_PRIVATE);
@@ -164,7 +164,7 @@ public class OmhClientLibUtils {
 		return installationId;
 	}
 
-	private static String createInstallationId(Context context) {
+	private static synchronized String createInstallationId(Context context) {
 		String installationId = null;
 		
 		installationId = UUID.randomUUID().toString();
@@ -179,7 +179,7 @@ public class OmhClientLibUtils {
 		return installationId;
 	}
 	
-	public static String dataPointSequence(Context context) {
+	public static synchronized String dataPointSequence(Context context) {
 		
 		SharedPreferences libSharedPreferences = context.getSharedPreferences(OmhClientLibConsts.SHARED_PREFERENCES_OMHCLIENTLIB, Context.MODE_PRIVATE);
 
@@ -350,7 +350,7 @@ public class OmhClientLibUtils {
 			
 	}
 
-	public static void storeTokens(String signInResponse, Context context) throws TokensResponseNotValidJsonException {
+	public static synchronized void storeTokens(String signInResponse, Context context) throws TokensResponseNotValidJsonException {
 	
 		if (signInResponse == null) {
 			throw new TokensResponseNotValidJsonException();
