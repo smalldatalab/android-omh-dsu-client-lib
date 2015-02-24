@@ -24,6 +24,7 @@ import edu.cornell.tech.smalldata.omhclientlib.OmhClientLibConsts;
 import edu.cornell.tech.smalldata.omhclientlib.OmhClientLibSQLiteOpenHelper;
 import edu.cornell.tech.smalldata.omhclientlib.OmhClientLibUtils;
 import edu.cornell.tech.smalldata.omhclientlib.R;
+import edu.cornell.tech.smalldata.omhclientlib.exceptions.ConflictInWriteRequestException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.ExchangingAuthCodeForTokensException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.HttpPostRequestFailedException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.NoAccessTokenException;
@@ -165,9 +166,7 @@ public class UploadToDsuService extends Service {
 				try {
 					OmhClientLibUtils.writeDataPointRequest(payload, mContext);
 					
-					String[] dataPointId = {Integer.toString(cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_DATPOINT_ID)))};
-					int rowsDeleted = database.delete(TABLE_NAME_DATAPOINT, COLUMN_NAME_DATPOINT_ID + " = ?", dataPointId);
-					Log.d(LOG_TAG, "deleting datapoint_id " + dataPointId[0] + ", rows deleted: " + rowsDeleted);
+					deleteDataPoint(database, cursor);
 					
 				} catch (NoAccessTokenException e) {
 					exitPayloadsLoop = true;
@@ -181,6 +180,8 @@ public class UploadToDsuService extends Service {
 						e2.addSuppressed(e1);
 						throw e2;
 					}
+				} catch (ConflictInWriteRequestException e) {
+					deleteDataPoint(database, cursor);
 				} catch (HttpPostRequestFailedException | UnsuccessfulWriteToDsuException e) {
 					UnsuccessfulDatapointUploadException e1 = new UnsuccessfulDatapointUploadException();
 					e1.addSuppressed(e);
@@ -193,6 +194,14 @@ public class UploadToDsuService extends Service {
 		
 		cursor.close();
 		database.close();
+		
+	}
+
+	private void deleteDataPoint(final SQLiteDatabase database, final Cursor cursor) {
+		
+		String[] dataPointId = {Integer.toString(cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_DATPOINT_ID)))};
+		int rowsDeleted = database.delete(TABLE_NAME_DATAPOINT, COLUMN_NAME_DATPOINT_ID + " = ?", dataPointId);
+		Log.d(LOG_TAG, "deleting datapoint_id " + dataPointId[0] + ", rows deleted: " + rowsDeleted);
 		
 	}
 

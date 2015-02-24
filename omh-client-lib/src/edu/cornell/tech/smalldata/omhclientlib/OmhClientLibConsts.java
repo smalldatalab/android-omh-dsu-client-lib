@@ -28,6 +28,6 @@ public class OmhClientLibConsts {
 	public static final String ACCOUNT = "dummyaccount";
 	public static final String ACCOUNT_TYPE = "edu.cornell.tech.smalldata.omhclientlib";
 
-	public static String sPayload;
+	public static String sInstallationId;
 
 }

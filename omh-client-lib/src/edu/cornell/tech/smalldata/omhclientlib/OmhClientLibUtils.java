@@ -28,8 +28,10 @@ import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.os.SystemClock;
 import android.util.Base64;
 import android.util.Log;
+import edu.cornell.tech.smalldata.omhclientlib.exceptions.ConflictInWriteRequestException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.ExchangingAuthCodeForTokensException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.HttpPostRequestFailedException;
 import edu.cornell.tech.smalldata.omhclientlib.exceptions.NoAccessTokenException;
@@ -51,7 +53,8 @@ public class OmhClientLibUtils {
 	 * @throws UnsuccessfulWriteToDsuException
 	 */
 	public static void writeDataPointRequest(String entity, Context context)
-			throws NoAccessTokenException, HttpPostRequestFailedException, UnsuccessfulWriteToDsuException, UnauthorizedWriteAttemptException {
+			throws NoAccessTokenException, HttpPostRequestFailedException, UnsuccessfulWriteToDsuException, UnauthorizedWriteAttemptException,
+				   ConflictInWriteRequestException {
 		
 		StringBuilder urlStringBuilder = new StringBuilder();
 		urlStringBuilder.append(context.getString(R.string.dsu_root_url)).append('/').append("dataPoints");
@@ -104,12 +107,15 @@ public class OmhClientLibUtils {
 			if (HttpStatus.SC_UNAUTHORIZED == statusLine.getStatusCode()) {
 				UnauthorizedWriteAttemptException e = new UnauthorizedWriteAttemptException();
 				throw e;
+			} else if (HttpStatus.SC_CONFLICT == statusLine.getStatusCode()) {
+				ConflictInWriteRequestException e = new ConflictInWriteRequestException();
+				throw e;
 			} else if (HttpStatus.SC_CREATED != statusLine.getStatusCode()) {
 				UnsuccessfulWriteToDsuException e = new UnsuccessfulWriteToDsuException();
 				throw e;
 			}
 	
-		} catch (UnsuccessfulWriteToDsuException | UnauthorizedWriteAttemptException e) {
+		} catch (UnsuccessfulWriteToDsuException | UnauthorizedWriteAttemptException | ConflictInWriteRequestException e) {
 			throw e;
 		} catch (Throwable tr) {
 			HttpPostRequestFailedException e = new HttpPostRequestFailedException();
@@ -152,16 +158,18 @@ public class OmhClientLibUtils {
 	}
 
 	public static synchronized String installationId(Context context) {
-		String installationId = null;
 		
-		SharedPreferences libSharedPreferences = context.getSharedPreferences(OmhClientLibConsts.SHARED_PREFERENCES_OMHCLIENTLIB, Context.MODE_PRIVATE);
-
-		installationId = libSharedPreferences.getString(OmhClientLibConsts.PREFERENCES_KEY_INSTALLATION_ID, null);
-		if (installationId == null) {
-			installationId = createInstallationId(context);
+		if (OmhClientLibConsts.sInstallationId == null) {
+			
+			SharedPreferences libSharedPreferences = context.getSharedPreferences(OmhClientLibConsts.SHARED_PREFERENCES_OMHCLIENTLIB, Context.MODE_PRIVATE);
+			OmhClientLibConsts.sInstallationId = libSharedPreferences.getString(OmhClientLibConsts.PREFERENCES_KEY_INSTALLATION_ID, null);
+			
+			if (OmhClientLibConsts.sInstallationId == null) {
+				OmhClientLibConsts.sInstallationId = createInstallationId(context);
+			}
 		}
 		
-		return installationId;
+		return OmhClientLibConsts.sInstallationId;
 	}
 
 	private static synchronized String createInstallationId(Context context) {
@@ -179,22 +187,20 @@ public class OmhClientLibUtils {
 		return installationId;
 	}
 	
-	public static synchronized String dataPointSequence(Context context) {
+	public static String randomizedTime() {
 		
-		SharedPreferences libSharedPreferences = context.getSharedPreferences(OmhClientLibConsts.SHARED_PREFERENCES_OMHCLIENTLIB, Context.MODE_PRIVATE);
-
-		int dataPointSequence = libSharedPreferences.getInt(OmhClientLibConsts.PREFERENCES_KEY_DATA_POINT_SEQUENCE, 0);
+		String currentTimeString = String.format("%016x", System.currentTimeMillis());
 		
-		Editor editor = libSharedPreferences.edit();
-		editor.putInt(OmhClientLibConsts.PREFERENCES_KEY_DATA_POINT_SEQUENCE, ++dataPointSequence);
-		editor.commit();
+		long random = Math.round(Math.random() * 1000000);
+		String randomString = String.format("%05x", random) ;
 		
-		return String.format("%010d", dataPointSequence);
+		return currentTimeString + "-" + randomString; 
+		
 	}
 
 	public static String nextDataPointId(Context context) {
 		
-		return installationId(context) + dataPointSequence(context);
+		return installationId(context) + "-" + randomizedTime();
 		
 	}
 
