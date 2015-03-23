@@ -31,7 +31,7 @@ public class OmhDsuWriter {
 
 	private Account mAccount;
 
-	public static void writeDataPoint(Context context, Schema schema) {
+	public static void writeDataPointAsync(Context context, Schema schema) {
 		
 		OmhDsuWriter omhDsuWriter = new OmhDsuWriter(context);
 		omhDsuWriter.startWrite(schema);
@@ -39,44 +39,34 @@ public class OmhDsuWriter {
 	
 	public OmhDsuWriter(Context context) {
 		this.mContext = context;
-		mAccount = OmhClientLibUtils.createSyncAdapterAccount(context);
+//		mAccount = OmhClientLibUtils.createSyncAdapterAccount(context);
 	}
 
 	private void startWrite(final Schema schema) {
-		
+		// Write to database in background
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				
 				try {
-					handleWrite(schema);
+					String payload = createPayload(schema);
+					// TODO JARED: should we move database stuff into ContentProvider?
+					insertIntoDatabase(payload);
 					
-					if ("yes".equals(mContext.getString(R.string.omhclientlib_use_sync_adapter).toLowerCase())) {
+					// Request immediate sync to upload stored data
+					Bundle settingsBundle = new Bundle();
+					settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+					settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+					String authority = mContext.getString(R.string.omhclientlib_syncadapter_provider_authority);
+					ContentResolver.requestSync(mAccount, authority, settingsBundle);
 						
-						Bundle settingsBundle = new Bundle();
-						settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
-						settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
-						
-						String authority = mContext.getString(R.string.omhclientlib_syncadapter_provider_authority);
-						
-						ContentResolver.requestSync(mAccount, authority, settingsBundle);
-						
-					} else {
-						
-						Intent serviceIntent = new Intent(mContext, UploadToDsuService.class);
-						mContext.startService(serviceIntent);
-						
-					}
-					
 				} catch (UnsupportedOmhSchemaException e) {
 					Log.e(LOG_TAG, "Unsuccessful OmH write", e);
 				}
 			}
 		}).start();
-		
 	}
 
-	private void handleWrite(Schema schema) throws UnsupportedOmhSchemaException {
+	private String createPayload(Schema schema) throws UnsupportedOmhSchemaException {
 		
 		String payload = null;
 		
@@ -94,8 +84,7 @@ public class OmhDsuWriter {
 			throw new UnsupportedOmhSchemaException();
 		}
 		
-		insertIntoDatabase(payload);
-		
+		return payload;		
 	}
 
 	private void insertIntoDatabase(String payload) {
