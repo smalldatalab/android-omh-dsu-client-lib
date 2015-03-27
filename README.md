@@ -1,16 +1,16 @@
 # omh-android-client-lib
 Android library project that enables authentication and upload of  data-points to Ohmage OMH DSU. 
-
+# See [demo_app](https://github.com/smalldatalab/android-omh-dsu-client-lib/tree/master/demo_app/) for usage example.
 # Getting Started
 * Before you start, make sure you have obtain a pair of DSU client_id and secret from your DSU admin.
-* Create a Google OAuth Client in Google Project Console with your app's Application ID and (debug) SHA1 key. (See Step 1. in this [tutalrial](https://developers.google.com/+/mobile/android/getting-started))
-* Add **omhClientLib-release.aar** to your apps */your_app/libs* folder.
+* Register your app's Application ID and (debug and release) SHA1 key in [Google Developer Console](https://console.developers.google.com/project). (See Step 1. in this [tutalrial](https://developers.google.com/+/mobile/android/getting-started))
+* Add **omhClientLib-release-x.x.aar** to your */your_app/libs* folder.
 * In *build.gradle* of your app, add the following dependencies:
 ```gradle
 dependencies {
  
     /** For omh client library **/
-    compile(name:'omhClientLib-release', ext:'aar')
+    compile(name:'omhclient_library-release-1.0', ext:'aar')
     
     // for google sign-in (4.4 or higher)
     compile 'com.google.android.gms:play-services-identity:7.0.0'
@@ -23,7 +23,7 @@ dependencies {
     compile 'joda-time:joda-time:2.3'
 }
 ```
-* In your *AndroidManifes.xml*, add attribute ```xml android:name="com.orm.SugarApp" ``` to the application tag. This will replace the default Application class with the SurgarApp and enble the [Surgar ORM](http://satyan.github.io/sugar/). For example:
+* In your *AndroidManifes.xml*, add attribute ```android:name="com.orm.SugarApp" ``` to the application tag. This will replace the default Application class with the SurgarApp to enble the [Surgar ORM](http://satyan.github.io/sugar/). For example:
 
 ```xml
 <!-- The Application class is set to com.orm.SugarApp for the ORM to work.-->
@@ -37,9 +37,9 @@ dependencies {
     .....
 </application>
 ```
-  You can also extend the SurgarApp class if you need to further customize the Aplplication class.
+** You can also extend the SurgarApp class if you need to further customize the Aplplication class.
   
-* In your *strings.xml* file, add a string value named **dsu_provider_authorities**. This value is used to identify an internal Content Provider and so it must be *unique* for each app to prevent conflict.
+* In your *strings.xml* file, add a string value named **dsu_provider_authorities**. This value is used to uniquely identify an internal Content Provider and so it must be *unique* for each app to prevent conflict.
 ```xml
 <!--IMPORTANT: dsu_provider_authorities should be unique for your app! -->
 <string name="dsu_provider_authorities">io.smalldatalab.dsu.demo</string>
@@ -77,10 +77,10 @@ DSUDataPoint datapoint =
                 .setSchemaNamespace("io.smalldatalab")
                 .setSchemaName("dummy")
                 .setSchemaVersion("1.0")
-                .setBody("{\"dummy\":0}")
+                .setBody("{\"dummy\":0}") // or .setBody(new JSONObject("......"))
                 .setCreationDateTime(new DateTime()) // optional
                 .setAcquisitionSource("dummy") // optional
-                .setAcquisitionModality("sensed") // optional
+                .setAcquisitionModality("sensed") // or "self_reported" , also optional
                 .createDSUDataPoint();
 datapoint.save(); // save the data point to the local database
 ```
