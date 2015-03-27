@@ -61,7 +61,7 @@ final DSUClient dsuClient =
 * SignIn/SignOut the user with the following methods (They involve blocking network call. Don't run them in the main UI thread.):
 ```java
 // sign in (run this in an Activity)
-boolean success = dsuClient.blockingSignIn(activity);
+boolean success = dsuClient.blockingGoogleSignIn(activity);
 
 // sign out
 boolean success = dsuClient.blockingSignOut();
