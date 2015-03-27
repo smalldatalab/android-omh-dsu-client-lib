@@ -77,7 +77,7 @@ DSUDataPoint datapoint =
                 .setSchemaNamespace("io.smalldatalab")
                 .setSchemaName("dummy")
                 .setSchemaVersion("1.0")
-                .setBody("{\"dummy\":0}")
+                .setBody("{\"dummy\":0}") // or .setBody(new JSONObject("......"))
                 .setCreationDateTime(new DateTime()) // optional
                 .setAcquisitionSource("dummy") // optional
                 .setAcquisitionModality("sensed") // optional
