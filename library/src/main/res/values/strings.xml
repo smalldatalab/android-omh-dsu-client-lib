@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Omhclientlib</string>
+    <string name="title_activity_demo">DemoActivity</string>
+    <string name="sign_in_dsu">Sign In SmallDataLab OMH DSU</string>
+    <string name="google_signin_fail">Failed to sign. Be sure the app is associated with a Google Project and enable G+ API.</string>
+
+
+    <!-- This should be replaced by a unique value to the app in the app's strings.xml -->
+    <string name="dsu_provider_authorities">REPLACE_ME_IN_YOUR_APP</string>
+
+    <!-- Replace these to customize the dialog -->
+    <string name="signin_progress_dialog_title">Sign in</string>
+    <string name="signin_progress_dialog_message">We are signing you in…</string>
+
+
+</resources>

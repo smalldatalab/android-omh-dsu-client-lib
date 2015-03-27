@@ -1,0 +1,41 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "21.1.2"
+
+    defaultConfig {
+        applicationId "io.smalldatalab.dsu.omhclientlib2"
+        minSdkVersion 9
+        targetSdkVersion 21
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.android.support:appcompat-v7:21.0.3'
+
+    /** For omh upload library **/
+    compile project(':library')
+    // TODO: replace this with: compile(name:'omhClientLib-release', ext:'aar')
+
+    // for google sign-in
+    compile 'com.google.android.gms:play-services-identity:7.0.0'
+    compile 'com.google.android.gms:play-services-plus:7.0.0'
+    // for http client
+    compile 'com.squareup.okhttp:okhttp:2.3.0'
+    // for db
+    compile 'com.github.satyan:sugar:1.3'
+    // for datetime
+    compile 'joda-time:joda-time:2.3'
+
+
+}

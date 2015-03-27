@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">OmhclientlibDemo</string>
+    <string name="title_activity_demo">DemoActivity</string>
+    <string name="action_settings">Settings</string>
+
+    <!--IMPORTANT: dsu_authorities should be unique for your app! -->
+    <string name="dsu_provider_authorities">io.smalldatalab.dsu.demo</string>
+    <!-- Optionally replace these to customize the dialog -->
+    <string name="signin_progress_dialog_title">Sign in (Customized Message)</string>
+    <string name="signin_progress_dialog_message">We are signing you in…  (Customized Message)</string>
+
+</resources>

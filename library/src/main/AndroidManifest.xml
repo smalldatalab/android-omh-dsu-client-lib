@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="io.smalldatalab.omhclient">
+
+    <!-- Google Plus Integration -->
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
+    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+    <!-- For SyncAdapter Usage -->
+    <uses-permission android:name="android.permission.READ_SYNC_STATS" />
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+
+    <!-- FIXME: extend com.org.SugarApp if customization necessary-->
+    <application>
+
+        <!-- FIXME: Specify DSU settings in your app's manifest-->
+        <!--
+        <meta-data
+            android:name="default_dsu_url"
+            android:value="https://lifestreams.smalldata.io/dsu_or_{YOUR_DSU_URL}"/>
+        <meta-data
+            android:name="dsu_client_id"
+            android:value="{YOUR_DSU_CLIENT_ID}" />
+        <meta-data
+            android:name="dsu_client_secret"
+            android:value="{YOUR_DSU_CLIENT_SECRET}" />
+        -->
+
+        <!-- Google Play Service -->
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
+        <!-- Sugar ORM for data point store-->
+        <meta-data
+            android:name="DATABASE"
+            android:value="io.smalldatalab.dsu.db" />
+        <meta-data
+            android:name="VERSION"
+            android:value="1" />
+        <meta-data
+            android:name="QUERY_LOG"
+            android:value="true" />
+        <meta-data
+            android:name="DOMAIN_PACKAGE_NAME"
+            android:value="io.smalldatalab.dsu" />
+
+
+        <provider
+            android:name=".DSUContentProvider"
+            android:authorities="@string/dsu_provider_authorities"
+            android:syncable="true"
+            android:enabled="true"></provider>
+
+        <service
+            android:name=".DSUService"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator" />
+                <action android:name="android.content.SyncAdapter" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.content.SyncAdapter"
+                android:resource="@xml/dsusyncer" />
+            <meta-data
+                android:name="android.accounts.AccountAuthenticator"
+                android:resource="@xml/authenticator" />
+        </service>
+
+        <activity
+            android:name=".DSUAccountAuthActivity"
+            android:label="@string/sign_in_dsu"
+            android:theme="@android:style/Theme.Translucent"
+            android:background="#33BBFFFF"
+
+            ></activity>
+
+    </application>
+
+</manifest>
