@@ -24,7 +24,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:21.0.3'
 
     /** For omh upload library **/
-    compile project(':library')
+    compile project(':omhclient_library')
     // TODO: replace this with: compile(name:'omhClientLib-release', ext:'aar')
 
     // for google sign-in
