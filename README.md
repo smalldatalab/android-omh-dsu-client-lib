@@ -3,14 +3,14 @@ Android library project that enables authentication and upload of  data-points t
 # See [demo_app](https://github.com/smalldatalab/android-omh-dsu-client-lib/tree/master/demo_app/) for usage example.
 # Getting Started
 * Before you start, make sure you have obtain a pair of DSU client_id and secret from your DSU admin.
-* Create a Google OAuth Client in Google Project Console with your app's Application ID and (debug) SHA1 key. (See Step 1. in this [tutalrial](https://developers.google.com/+/mobile/android/getting-started))
-* Add **omhClientLib-release.aar** to your apps */your_app/libs* folder.
+* Register your app's Application ID and (debug and release) SHA1 key in [Google Developer Console](https://console.developers.google.com/project). (See Step 1. in this [tutalrial](https://developers.google.com/+/mobile/android/getting-started))
+* Add **omhClientLib-release-x.x.aar** to your apps */your_app/libs* folder.
 * In *build.gradle* of your app, add the following dependencies:
 ```gradle
 dependencies {
  
     /** For omh client library **/
-    compile(name:'omhclient_library-release-1.0', ext:'aar')
+    compile(name:'omhclient_library-release-1.+', ext:'aar')
     
     // for google sign-in (4.4 or higher)
     compile 'com.google.android.gms:play-services-identity:7.0.0'
