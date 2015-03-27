@@ -1,6 +1,6 @@
 # omh-android-client-lib
 Android library project that enables authentication and upload of  data-points to Ohmage OMH DSU. 
-
+# See [demo_app](https://github.com/smalldatalab/android-omh-dsu-client-lib/tree/master/demo_app) for usage example.
 # Getting Started
 * Before you start, make sure you have obtain a pair of DSU client_id and secret from your DSU admin.
 * Create a Google OAuth Client in Google Project Console with your app's Application ID and (debug) SHA1 key. (See Step 1. in this [tutalrial](https://developers.google.com/+/mobile/android/getting-started))
