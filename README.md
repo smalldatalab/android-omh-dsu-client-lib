@@ -4,7 +4,7 @@ Android library project that enables authentication and upload of  data-points t
 # Getting Started
 * Before you start, make sure you have obtain a pair of DSU client_id and secret from your DSU admin.
 * Register your app's Application ID and (debug and release) SHA1 key in [Google Developer Console](https://console.developers.google.com/project). (See Step 1. in this [tutalrial](https://developers.google.com/+/mobile/android/getting-started))
-* Add **omhClientLib-release-x.x.aar** to your apps */your_app/libs* folder.
+* Add **omhClientLib-release-x.x.aar** to your */your_app/libs* folder.
 * In *build.gradle* of your app, add the following dependencies:
 ```gradle
 dependencies {
@@ -39,7 +39,7 @@ dependencies {
 ```
   You can also extend the SurgarApp class if you need to further customize the Aplplication class.
   
-* In your *strings.xml* file, add a string value named **dsu_provider_authorities**. This value is used to identify an internal Content Provider and so it must be *unique* for each app to prevent conflict.
+* In your *strings.xml* file, add a string value named **dsu_provider_authorities**. This value is used to uniquely identify an internal Content Provider and so it must be *unique* for each app to prevent conflict.
 ```xml
 <!--IMPORTANT: dsu_provider_authorities should be unique for your app! -->
 <string name="dsu_provider_authorities">io.smalldatalab.dsu.demo</string>
