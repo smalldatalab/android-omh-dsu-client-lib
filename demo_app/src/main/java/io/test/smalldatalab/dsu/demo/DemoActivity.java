@@ -68,7 +68,7 @@ public class DemoActivity extends ActionBarActivity {
                     @Override
                     public void run() {
                         try {
-                            if (dsuClient.blockingSignIn(activity) != null) {
+                            if (dsuClient.blockingGoogleSignIn(activity) != null) {
                                 message("Account created");
                             } else {
                                 message("Account creation failed");

@@ -20,6 +20,10 @@ import com.squareup.okhttp.Response;
 
 import java.io.IOException;
 
+/**
+ * The main class of OmhClient library that provide simple methods for sign-in, sign-out,
+ * and force-upload. Create a DSUClient with your DSU settings (url, dsu_client_id, secret).
+ */
 public class DSUClient {
 
 
@@ -98,7 +102,7 @@ public class DSUClient {
         this.accountManager = (AccountManager) cxt.getSystemService(Context.ACCOUNT_SERVICE);
     }
 
-    public Response postData(String accessToken, String json) throws IOException {
+    protected Response postData(String accessToken, String json) throws IOException {
         RequestBody body = RequestBody.create(JSON, json);
         Request request = new Request.Builder()
                 .url(dsu_url + "/dataPoints")
@@ -108,7 +112,7 @@ public class DSUClient {
         return client.newCall(request).execute();
     }
 
-    public Response signin(String googleToken) throws IOException {
+    protected Response signin(String googleToken) throws IOException {
         RequestBody body = new FormEncodingBuilder()
                 .add("client_id", getClientId())
                 .add("client_secret", getClientSecret())
@@ -121,7 +125,7 @@ public class DSUClient {
         return client.newCall(request).execute();
     }
 
-    public Response refreshToken(String refreshToken) throws IOException {
+    protected Response refreshToken(String refreshToken) throws IOException {
 
         RequestBody body = new FormEncodingBuilder()
                 .add("grant_type", "refresh_token")
@@ -136,7 +140,16 @@ public class DSUClient {
     }
 
 
-    public Account blockingSignIn(final Activity activity) throws AuthenticatorException, OperationCanceledException, IOException {
+    /**
+     * Sign in the DSU using Google Sign-in. Don't run this in the main UI thread.
+     *
+     * @param activity an Activity object that will be used to start the SignIn Activity
+     * @return true if sign in succeeded otherwise false
+     * @throws AuthenticatorException     error in authenticating the user using google sign in
+     * @throws OperationCanceledException user cancel the sign in process
+     * @throws IOException                network error
+     */
+    public Account blockingGoogleSignIn(final Activity activity) throws AuthenticatorException, OperationCanceledException, IOException {
         Bundle accountOptions = new Bundle();
         accountOptions.putString(DSU_URL_KEY, dsu_url);
         accountOptions.putString(DSU_CLIENT_ID_KEY, dsu_client_id);
@@ -158,6 +171,13 @@ public class DSUClient {
 
     }
 
+    /**
+     * Sign out user from the DSU.
+     * @return true if sign out succeeded otherwise false
+     * @throws AuthenticatorException error in authenticating the user using google sign in
+     * @throws OperationCanceledException user cancel the sign out process
+     * @throws IOException network error
+     */
     public boolean blockingSignOut() throws AuthenticatorException, OperationCanceledException, IOException {
 
         // Remove account
@@ -179,6 +199,10 @@ public class DSUClient {
         return true;
     }
 
+    /**
+     * Check if the user already sign in the DSU
+     * @return true if the user already sign in
+     */
     public boolean isSignedIn() {
         Account[] omhClientLibAccounts = accountManager.getAccountsByType(defaultAccount.type);
         if (omhClientLibAccounts.length == 0) {
@@ -188,6 +212,9 @@ public class DSUClient {
         }
     }
 
+    /**
+     * Start uploading the data to DSU immediately. do nothing if the user hasn't sign in.
+     */
     public void forceSync() {
         // Pass the settings flags by inserting them in a bundle
         Bundle settingsBundle = new Bundle();
