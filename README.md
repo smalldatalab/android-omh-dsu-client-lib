@@ -10,7 +10,7 @@ Android library project that enables authentication and upload of  data-points t
 dependencies {
  
     /** For omh client library **/
-    compile(name:'omhclient_library-release-1.+', ext:'aar')
+    compile(name:'omhclient_library-release-1.0', ext:'aar')
     
     // for google sign-in (4.4 or higher)
     compile 'com.google.android.gms:play-services-identity:7.0.0'
