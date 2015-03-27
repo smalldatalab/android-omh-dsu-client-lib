@@ -136,6 +136,11 @@ public class DSUAccountAuthActivity extends AccountAuthenticatorActivity impleme
         mGoogleApiClient.connect();
     }
 
+    @Override
+    public void finish() {
+        progress.dismiss();
+        super.finish();
+    }
     public void onDsuAuthFailed(final int reason) {
         setResult(FAILED_TO_SIGN_IN);
         finish();
