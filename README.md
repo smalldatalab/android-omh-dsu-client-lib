@@ -80,7 +80,7 @@ DSUDataPoint datapoint =
                 .setBody("{\"dummy\":0}") // or .setBody(new JSONObject("......"))
                 .setCreationDateTime(new DateTime()) // optional
                 .setAcquisitionSource("dummy") // optional
-                .setAcquisitionModality("sensed") // optional
+                .setAcquisitionModality("sensed") // or "self_reported" , also optional
                 .createDSUDataPoint();
 datapoint.save(); // save the data point to the local database
 ```
