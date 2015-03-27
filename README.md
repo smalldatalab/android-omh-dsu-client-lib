@@ -23,7 +23,7 @@ dependencies {
     compile 'joda-time:joda-time:2.3'
 }
 ```
-* In your *AndroidManifes.xml*, add attribute ```xml android:name="com.orm.SugarApp" ``` to the application tag. This will replace the default Application class with the SurgarApp and enble the [Surgar ORM](http://satyan.github.io/sugar/). For example:
+* In your *AndroidManifes.xml*, add attribute ```android:name="com.orm.SugarApp" ``` to the application tag. This will replace the default Application class with the SurgarApp to enble the [Surgar ORM](http://satyan.github.io/sugar/). For example:
 
 ```xml
 <!-- The Application class is set to com.orm.SugarApp for the ORM to work.-->
@@ -37,7 +37,7 @@ dependencies {
     .....
 </application>
 ```
-  You can also extend the SurgarApp class if you need to further customize the Aplplication class.
+** You can also extend the SurgarApp class if you need to further customize the Aplplication class.
   
 * In your *strings.xml* file, add a string value named **dsu_provider_authorities**. This value is used to uniquely identify an internal Content Provider and so it must be *unique* for each app to prevent conflict.
 ```xml
