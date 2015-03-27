@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<sync-adapter xmlns:android="http://schemas.android.com/apk/res/android"
-    android:accountType="edu.cornell.tech.smalldata.omhclientlib"
-    android:allowParallelSyncs="false"
-    android:contentAuthority="@string/omhclientlib_syncadapter_provider_authority"
-    android:isAlwaysSyncable="true"
-    android:supportsUploading="true"
-    android:userVisible="false" />

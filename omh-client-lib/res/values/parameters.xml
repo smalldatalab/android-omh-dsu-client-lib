@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
-
-    <string name="omhclientlib_version_name">1.1.9</string>
-    
-    <string name="dsu_google_auth_scope">email profile</string>
-    
-</resources>
