@@ -96,7 +96,8 @@ public class DSUClient {
         this.dsu_url = dsu_url;
         this.dsu_client_id = dsu_client_id;
         this.dsu_client_secret = dsu_client_secret;
-        this.dsu_client_auth = Base64.encodeToString((dsu_client_id + ":" + dsu_client_secret).getBytes(), Base64.DEFAULT);
+        // USE NO_WRAP to avoid additional newline at the end.
+        this.dsu_client_auth = Base64.encodeToString((dsu_client_id + ":" + dsu_client_secret).getBytes(), Base64.NO_WRAP);
         this.cxt = cxt;
         this.defaultAccount = DSUAuth.getDefaultAccount(cxt);
         this.accountManager = (AccountManager) cxt.getSystemService(Context.ACCOUNT_SERVICE);
@@ -109,6 +110,7 @@ public class DSUClient {
                 .header("Authorization", "Bearer " + accessToken)
                 .post(body)
                 .build();
+
         return client.newCall(request).execute();
     }
 
@@ -230,4 +232,14 @@ public class DSUClient {
     }
 
 
+    @Override
+    public String toString() {
+        return "DSUClient{" +
+                "dsu_url='" + dsu_url + '\'' +
+                ", dsu_client_id='" + dsu_client_id + '\'' +
+                ", dsu_client_secret='" + dsu_client_secret + '\'' +
+                ", dsu_client_auth='" + dsu_client_auth + '\'' +
+                ", defaultAccount=" + defaultAccount +
+                '}';
+    }
 }

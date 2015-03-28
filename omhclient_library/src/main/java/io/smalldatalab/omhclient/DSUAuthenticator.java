@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.squareup.okhttp.Response;
 
@@ -20,7 +21,7 @@ import java.io.IOException;
 public class DSUAuthenticator extends AbstractAccountAuthenticator {
 
     private Context mContext;
-
+    private final static String TAG = DSUAuthenticator.class.getSimpleName();
     public DSUAuthenticator(Context context) {
         super(context);
         this.mContext = context;
@@ -61,24 +62,29 @@ public class DSUAuthenticator extends AbstractAccountAuthenticator {
             throws NetworkErrorException {
         // Extract the username and password from the Account Manager, and ask
         // the server for an appropriate AuthToken.
+        Log.v(TAG, "******* Get access token start ******** ");
         final AccountManager am = AccountManager.get(mContext);
         String authToken = am.peekAuthToken(account, DSUAuth.ACCESS_TOKEN_TYPE);
         String refreshToken = am.peekAuthToken(account, DSUAuth.REFRESH_TOKEN_TYPE);
 
 
-        // Lets give another try to authenticate the user
         if (TextUtils.isEmpty(authToken)) {
+            // access token not found
             if (refreshToken != null) {
+                // Lets try to refresh the token
+                String responseBody = "";
                 try {
                     DSUClient client = DSUClient.getDSUClientFromUserData(account, mContext);
                     Response response = client.refreshToken(refreshToken);
-                    JSONObject token = new JSONObject(response.body().string());
+                    responseBody = response.body().string();
+                    JSONObject token = new JSONObject(responseBody);
                     authToken = token.getString(DSUAuth.ACCESS_TOKEN_TYPE);
                     refreshToken = token.getString(DSUAuth.REFRESH_TOKEN_TYPE);
                     am.setAuthToken(account, DSUAuth.ACCESS_TOKEN_TYPE, authToken);
                     am.setAuthToken(account, DSUAuth.REFRESH_TOKEN_TYPE, refreshToken);
                 } catch (IOException | JSONException e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "Cannot refresh token with refresh token: " + refreshToken +
+                            " Response is:" + responseBody, e);
                 }
             }
         }
@@ -89,6 +95,8 @@ public class DSUAuthenticator extends AbstractAccountAuthenticator {
             result.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
             result.putString(AccountManager.KEY_ACCOUNT_TYPE, account.type);
             result.putString(AccountManager.KEY_AUTHTOKEN, authToken);
+
+            Log.v(TAG, "******* Get access token succeeded ********");
             return result;
         }
 
@@ -99,6 +107,7 @@ public class DSUAuthenticator extends AbstractAccountAuthenticator {
         intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, res);
         final Bundle b = new Bundle();
         b.putParcelable(AccountManager.KEY_INTENT, intent);
+        Log.e(TAG, "******* Get access token failed! ********");
         return b;
     }
 

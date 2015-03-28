@@ -11,8 +11,6 @@ import android.content.IntentSender.SendIntentException;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.GoogleAuthUtil;
@@ -55,10 +53,6 @@ public class DSUAccountAuthActivity extends AccountAuthenticatorActivity impleme
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // hide the title bar
-        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         progress = new ProgressDialog(this);
         progress.setTitle(getString(io.smalldatalab.omhclient.R.string.signin_progress_dialog_title));
@@ -141,6 +135,7 @@ public class DSUAccountAuthActivity extends AccountAuthenticatorActivity impleme
         progress.dismiss();
         super.finish();
     }
+
     public void onDsuAuthFailed(final int reason) {
         setResult(FAILED_TO_SIGN_IN);
         finish();
