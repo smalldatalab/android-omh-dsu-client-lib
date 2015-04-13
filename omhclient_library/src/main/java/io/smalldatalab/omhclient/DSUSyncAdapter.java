@@ -59,7 +59,9 @@ public class DSUSyncAdapter extends AbstractThreadedSyncAdapter {
                     Response response = client.postData(token, json.toString());
                     if (response.isSuccessful()) { // success or conflict(409)
                         // Remove the data point from the database
-                        datapoint.delete();
+                        if (datapoint.getId() != null) {
+                            datapoint.delete();
+                        }
                         syncResult.stats.numEntries++;
                         syncResult.stats.numDeletes++;
                     } else if (response.code() == 409) {
@@ -76,7 +78,9 @@ public class DSUSyncAdapter extends AbstractThreadedSyncAdapter {
                     }
                 } catch (JSONException e) {
                     syncResult.stats.numSkippedEntries++;
-                    datapoint.delete();
+                    if (datapoint.getId() != null) {
+                        datapoint.delete();
+                    }
                     Log.e(TAG, "Delete datapoint that cannot be parsed:" + datapoint, e);
                 }
             }

@@ -17,9 +17,6 @@
     <!-- FIXME: extend com.org.SugarApp if customization necessary-->
     <application>
 
-        <!-- FIXME: Specify DSU settings in your app's manifest-->
-
-
         <!-- Google Play Service -->
         <meta-data
             android:name="com.google.android.gms.version"
@@ -41,13 +38,13 @@
 
 
         <provider
-            android:name=".DSUContentProvider"
+            android:name="io.smalldatalab.omhclient.DSUContentProvider"
             android:authorities="@string/dsu_provider_authorities"
             android:syncable="true"
             android:enabled="true"></provider>
 
         <service
-            android:name=".DSUService"
+            android:name="io.smalldatalab.omhclient.DSUService"
             android:enabled="true">
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />
