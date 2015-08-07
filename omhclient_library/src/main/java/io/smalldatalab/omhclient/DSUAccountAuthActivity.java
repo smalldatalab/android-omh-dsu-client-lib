@@ -37,6 +37,7 @@ public class DSUAccountAuthActivity extends AccountAuthenticatorActivity impleme
     private static final int RC_SIGN_IN = 0;
     private static final int AUTH_CODE_REQUEST_CODE = 1;
     private static final int REQUEST_RESOLVE_ERROR = 2;
+    private String dsuAuthorizationMethod;
 
     /* Response code used to communicate the sign in result */
     public static final int FAILED_TO_GET_AUTH_CODE = 2;
@@ -59,26 +60,40 @@ public class DSUAccountAuthActivity extends AccountAuthenticatorActivity impleme
         progress.setMessage(getString(io.smalldatalab.omhclient.R.string.signin_progress_dialog_message));
         progress.show();
 
-        // Init google plus integration
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(Plus.API)
-                .addScope(Plus.SCOPE_PLUS_LOGIN)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
+        // Check which signin method to use
+        Bundle options = DSUAccountAuthActivity.this.getIntent().getBundleExtra("options");
+        dsuAuthorizationMethod = options.getString(DSUClient.DSU_AUTHORIZATION_METHOD_KEY);
 
+        if(dsuAuthorizationMethod.equals(DSUClient.AUTHORIZATION_METHOD_OMH)){
+            if (!mIntentInProgress) {
+                mIntentInProgress = true;
+                new OmhSignIn().execute();
+            }
+        } else {
+            dsuAuthorizationMethod = DSUClient.AUTHORIZATION_METHOD_GOOGLE;
+            // Init google plus integration
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addApi(Plus.API)
+                    .addScope(Plus.SCOPE_PLUS_LOGIN)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .build();
+        }
     }
 
     protected void onStart() {
         super.onStart();
-        mGoogleApiClient.connect();
+        if (dsuAuthorizationMethod.equals(DSUClient.AUTHORIZATION_METHOD_GOOGLE)) {
+            mGoogleApiClient.connect();
+        }
     }
 
     protected void onStop() {
         super.onStop();
-
-        if (mGoogleApiClient.isConnected()) {
-            mGoogleApiClient.disconnect();
+        if (dsuAuthorizationMethod.equals(DSUClient.AUTHORIZATION_METHOD_GOOGLE)) {
+            if (mGoogleApiClient.isConnected()) {
+                mGoogleApiClient.disconnect();
+            }
         }
     }
 
@@ -87,15 +102,19 @@ public class DSUAccountAuthActivity extends AccountAuthenticatorActivity impleme
         if (requestCode == RC_SIGN_IN) {
             mIntentInProgress = false;
 
-            if (!mGoogleApiClient.isConnecting()) {
-                mGoogleApiClient.connect();
+            if (dsuAuthorizationMethod.equals(DSUClient.AUTHORIZATION_METHOD_GOOGLE)) {
+                if (!mGoogleApiClient.isConnecting()) {
+                    mGoogleApiClient.connect();
+                }
             }
         } else if (requestCode == AUTH_CODE_REQUEST_CODE) {
             mIntentInProgress = true;
             if (responseCode != RESULT_OK) {
                 onDsuAuthFailed(FAILED_TO_GET_AUTH_CODE);
             } else {
-                new SignIn().execute();
+                if (dsuAuthorizationMethod.equals(DSUClient.AUTHORIZATION_METHOD_GOOGLE)) {
+                    new GoogleSignIn().execute();
+                }
             }
         }
     }
@@ -110,7 +129,9 @@ public class DSUAccountAuthActivity extends AccountAuthenticatorActivity impleme
                 // The intent was canceled before it was sent.  Return to the default
                 // state and attempt to connect to get an updated ConnectionResult.
                 mIntentInProgress = false;
-                mGoogleApiClient.connect();
+                if (dsuAuthorizationMethod.equals(DSUClient.AUTHORIZATION_METHOD_GOOGLE)) {
+                    mGoogleApiClient.connect();
+                }
             }
         } else {
             Toast.makeText(this, getString(io.smalldatalab.omhclient.R.string.google_signin_fail), Toast.LENGTH_LONG).show();
@@ -121,13 +142,17 @@ public class DSUAccountAuthActivity extends AccountAuthenticatorActivity impleme
     public void onConnected(Bundle connectionHint) {
         if (!mIntentInProgress) {
             mIntentInProgress = true;
-            new SignIn().execute();
+            if (dsuAuthorizationMethod.equals(DSUClient.AUTHORIZATION_METHOD_GOOGLE)) {
+                new GoogleSignIn().execute();
+            }
         }
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-        mGoogleApiClient.connect();
+        if (dsuAuthorizationMethod.equals(DSUClient.AUTHORIZATION_METHOD_GOOGLE)) {
+            mGoogleApiClient.connect();
+        }
     }
 
     @Override
@@ -142,7 +167,7 @@ public class DSUAccountAuthActivity extends AccountAuthenticatorActivity impleme
     }
 
 
-    private class SignIn extends AsyncTask<Void, Void, Void> {
+    private class GoogleSignIn extends AsyncTask<Void, Void, Void> {
 
         @Override
         protected Void doInBackground(Void... _) {
@@ -162,7 +187,7 @@ public class DSUAccountAuthActivity extends AccountAuthenticatorActivity impleme
                 Bundle options = DSUAccountAuthActivity.this.getIntent().getBundleExtra("options");
                 DSUClient client = DSUClient.getDSUClientFromOptions(options, DSUAccountAuthActivity.this);
 
-                Response response = client.signin(googleAccessToken);
+                Response response = client.signinGoogle(googleAccessToken);
                 // clear token and default account from cache immediately to avoid stable state in the future
                 GoogleAuthUtil.clearToken(DSUAccountAuthActivity.this, googleAccessToken);
                 Plus.AccountApi.clearDefaultAccount(mGoogleApiClient);
@@ -232,4 +257,65 @@ public class DSUAccountAuthActivity extends AccountAuthenticatorActivity impleme
 
     }
 
+    private class OmhSignIn extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... _) {
+
+            Context cxt = DSUAccountAuthActivity.this;
+            try {
+                Bundle options = DSUAccountAuthActivity.this.getIntent().getBundleExtra("options");
+                DSUClient client = DSUClient.getDSUClientFromOptions(options, DSUAccountAuthActivity.this);
+
+                Response response = client.signinOmh(options.getString(DSUClient.TEMP_USERNAME_KEY), options.getString(DSUClient.TEMP_PW_KEY));
+                String responseBody = "";
+                if (response != null && response.isSuccessful()) {
+                    try {
+                        responseBody = response.body().string();
+                        JSONObject responseJson = new JSONObject(responseBody);
+
+                        // Get an instance of the Android account manager
+                        AccountManager accountManager = (AccountManager) getSystemService(ACCOUNT_SERVICE);
+                        final Account account = DSUAuth.getDefaultAccount(cxt);
+                        // set options bundle as the userdata
+                        accountManager.addAccountExplicitly(account, null, options);
+
+                        // make the account syncable and automatically synced
+                        String providerAuthorities = DSUAuth.getDSUProviderAuthorities(cxt);
+                        ContentResolver.setIsSyncable(account, providerAuthorities, 1);
+                        ContentResolver.setSyncAutomatically(account, providerAuthorities, true);
+                        ContentResolver.setMasterSyncAutomatically(true);
+
+                        accountManager.setAuthToken(account, DSUAuth.ACCESS_TOKEN_TYPE, responseJson.getString("access_token"));
+                        accountManager.setAuthToken(account, DSUAuth.REFRESH_TOKEN_TYPE, responseJson.getString("refresh_token"));
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Intent i = new Intent();
+                                i.putExtra(AccountManager.KEY_ACCOUNT_NAME, account.name);
+                                i.putExtra(AccountManager.KEY_ACCOUNT_TYPE, account.type);
+                                DSUAccountAuthActivity.this.setAccountAuthenticatorResult(i.getExtras());
+                                setResult(RESULT_OK);
+                                finish();
+                            }
+                        });
+                    } catch (JSONException e) {
+                        Log.e(TAG, "Fail to parse response from omh-sign-in endpoint:" + responseBody, e);
+                        onDsuAuthFailed(INVALID_ACCESS_TOKEN);
+                    }
+                } else {
+                    Log.e(TAG, "Failed to sign in: " + responseBody);
+                    onDsuAuthFailed(FAILED_TO_SIGN_IN);
+                }
+
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to sign in", e);
+                onDsuAuthFailed(FAILED_TO_SIGN_IN);
+            }
+            return null;
+        }
+
+
+    }
 }

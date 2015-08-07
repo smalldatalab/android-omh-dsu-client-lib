@@ -34,11 +34,18 @@ public class DSUClient {
     public static final String DSU_URL_KEY = "dsu_url";
     public static final String DSU_CLIENT_ID_KEY = "dsu_client_id";
     public static final String DSU_CLIENT_SECRET_KEY = "dsu_client_secret";
+    public static final String DSU_AUTHORIZATION_METHOD_KEY = "dsu_authorization_method";
+    public static final String TEMP_USERNAME_KEY = "temp_username";
+    public static final String TEMP_PW_KEY = "temp_pw";
+
+    public static final String AUTHORIZATION_METHOD_GOOGLE = "google_authorization_method"; // Uses Google APIs (3rd party) to authorize
+    public static final String AUTHORIZATION_METHOD_OMH = "omh_authorization_method"; // Uses the built in OMH endpoint, with their internal user service.
 
     final private String dsu_url;
     final private String dsu_client_id;
     final private String dsu_client_secret;
     final private String dsu_client_auth;
+    final private String dsu_authorization_method;
     final private Account defaultAccount;
     final private Context cxt;
     final private AccountManager accountManager;
@@ -68,6 +75,7 @@ public class DSUClient {
                 options.getString(DSU_URL_KEY),
                 options.getString(DSU_CLIENT_ID_KEY),
                 options.getString(DSU_CLIENT_SECRET_KEY),
+                options.getString(DSU_AUTHORIZATION_METHOD_KEY),
                 cxt);
     }
 
@@ -86,16 +94,22 @@ public class DSUClient {
                 accountManager.getUserData(account, DSUClient.DSU_URL_KEY),
                 accountManager.getUserData(account, DSUClient.DSU_CLIENT_ID_KEY),
                 accountManager.getUserData(account, DSUClient.DSU_CLIENT_SECRET_KEY),
+                accountManager.getUserData(account, DSUClient.DSU_AUTHORIZATION_METHOD_KEY),
                 cxt);
     }
 
     public DSUClient(String dsu_url, String dsu_client_id, String dsu_client_secret, Context cxt) {
+        this(dsu_url, dsu_client_id, dsu_client_secret, AUTHORIZATION_METHOD_GOOGLE, cxt);
+    }
+
+    public DSUClient(String dsu_url, String dsu_client_id, String dsu_client_secret, String dsu_authorization_method, Context cxt) {
         if (dsu_url == null || dsu_client_id == null || dsu_client_secret == null) {
             throw new RuntimeException("Missing dsu client settings!");
         }
         this.dsu_url = dsu_url;
         this.dsu_client_id = dsu_client_id;
         this.dsu_client_secret = dsu_client_secret;
+        this.dsu_authorization_method = dsu_authorization_method;
         // USE NO_WRAP to avoid additional newline at the end.
         this.dsu_client_auth = Base64.encodeToString((dsu_client_id + ":" + dsu_client_secret).getBytes(), Base64.NO_WRAP);
         this.cxt = cxt;
@@ -114,7 +128,7 @@ public class DSUClient {
         return client.newCall(request).execute();
     }
 
-    protected Response signin(String googleToken) throws IOException {
+    protected Response signinGoogle(String googleToken) throws IOException {
         RequestBody body = new FormEncodingBuilder()
                 .add("client_id", getClientId())
                 .add("client_secret", getClientSecret())
@@ -122,6 +136,20 @@ public class DSUClient {
                 .build();
         Request request = new Request.Builder()
                 .url(dsu_url + "/social-signin/google")
+                .post(body)
+                .build();
+        return client.newCall(request).execute();
+    }
+
+    protected Response signinOmh(String username, String password) throws IOException {
+        RequestBody body = new FormEncodingBuilder()
+                .add("username", username)
+                .add("password", password)
+                .add("grant_type", "password")
+                .build();
+        Request request = new Request.Builder()
+                .header("Authorization", "Basic " + getClientAuthorization())
+                .url(dsu_url + "/oauth/token")
                 .post(body)
                 .build();
         return client.newCall(request).execute();
@@ -156,6 +184,41 @@ public class DSUClient {
         accountOptions.putString(DSU_URL_KEY, dsu_url);
         accountOptions.putString(DSU_CLIENT_ID_KEY, dsu_client_id);
         accountOptions.putString(DSU_CLIENT_SECRET_KEY, dsu_client_secret);
+        accountOptions.putString(DSU_AUTHORIZATION_METHOD_KEY, AUTHORIZATION_METHOD_GOOGLE);
+
+        AccountManagerFuture<Bundle> future = accountManager.addAccount(
+                defaultAccount.type,
+                DSUAuth.ACCESS_TOKEN_TYPE,
+                null,
+                accountOptions,
+                activity, null, null);
+        Bundle result = future.getResult();
+        if (result.getString(AccountManager.KEY_ACCOUNT_NAME).equals(defaultAccount.name) &&
+                result.getString(AccountManager.KEY_ACCOUNT_TYPE).equals(defaultAccount.type)) {
+            return defaultAccount;
+        } else {
+            throw new AuthenticatorException("Wrong account name/type.");
+        }
+
+    }
+
+    /**
+     * Sign in the DSU using OMH sign-in. Don't run this in the main UI thread.
+     *
+     * @param activity an Activity object that will be used to start the SignIn Activity
+     * @return true if sign in succeeded otherwise false
+     * @throws AuthenticatorException     error in authenticating the user using google sign in
+     * @throws OperationCanceledException user cancel the sign in process
+     * @throws IOException                network error
+     */
+    public Account blockingOmhSignIn(final Activity activity, String username, String password) throws AuthenticatorException, OperationCanceledException, IOException {
+        Bundle accountOptions = new Bundle();
+        accountOptions.putString(DSU_URL_KEY, dsu_url);
+        accountOptions.putString(DSU_CLIENT_ID_KEY, dsu_client_id);
+        accountOptions.putString(DSU_CLIENT_SECRET_KEY, dsu_client_secret);
+        accountOptions.putString(DSU_AUTHORIZATION_METHOD_KEY, AUTHORIZATION_METHOD_OMH);
+        accountOptions.putString(TEMP_USERNAME_KEY, username);
+        accountOptions.putString(TEMP_PW_KEY, password);
 
         AccountManagerFuture<Bundle> future = accountManager.addAccount(
                 defaultAccount.type,
