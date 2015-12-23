@@ -7,7 +7,6 @@ import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender.SendIntentException;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,9 +14,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.auth.UserRecoverableAuthException;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.plus.Plus;
+import com.google.android.gms.common.AccountPicker;
 import com.squareup.okhttp.Response;
 
 import org.json.JSONException;
@@ -30,13 +27,12 @@ import org.json.JSONObject;
  *
  * @author jaredsieling
  */
-public class DSUAccountAuthActivity extends AccountAuthenticatorActivity implements
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class DSUAccountAuthActivity extends AccountAuthenticatorActivity  {
 
     /* Request code used to invoke sign in user interactions. */
-    private static final int RC_SIGN_IN = 0;
-    private static final int AUTH_CODE_REQUEST_CODE = 1;
-    private static final int REQUEST_RESOLVE_ERROR = 2;
+    private static final int REQUEST_CODE_RESOLVE_ISSUE = 1;
+    static final int REQUEST_CODE_PICK_ACCOUNT = 1000;
+
     private String dsuAuthorizationMethod;
 
     /* Response code used to communicate the sign in result */
@@ -44,9 +40,11 @@ public class DSUAccountAuthActivity extends AccountAuthenticatorActivity impleme
     public static final int FAILED_TO_SIGN_IN = 3;
     public static final int INVALID_ACCESS_TOKEN = 4;
 
-    /* Client used to interact with Google APIs. */
-    private GoogleApiClient mGoogleApiClient;
+
+
     private boolean mIntentInProgress;
+    private String scope;
+
 
     final static String TAG = DSUAccountAuthActivity.class.getSimpleName();
     ProgressDialog progress;
@@ -60,6 +58,8 @@ public class DSUAccountAuthActivity extends AccountAuthenticatorActivity impleme
         progress.setMessage(getString(io.smalldatalab.omhclient.R.string.signin_progress_dialog_message));
         progress.show();
 
+        scope = getString(R.string.google_signin_scope);
+
         // Check which signin method to use
         Bundle options = DSUAccountAuthActivity.this.getIntent().getBundleExtra("options");
         dsuAuthorizationMethod = options.getString(DSUClient.DSU_AUTHORIZATION_METHOD_KEY);
@@ -71,89 +71,55 @@ public class DSUAccountAuthActivity extends AccountAuthenticatorActivity impleme
             }
         } else {
             dsuAuthorizationMethod = DSUClient.AUTHORIZATION_METHOD_GOOGLE;
-            // Init google plus integration
-            mGoogleApiClient = new GoogleApiClient.Builder(this)
-                    .addApi(Plus.API)
-                    .addScope(Plus.SCOPE_PLUS_LOGIN)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .build();
+            startAccountPicker();
         }
     }
 
     protected void onStart() {
         super.onStart();
-        if (dsuAuthorizationMethod.equals(DSUClient.AUTHORIZATION_METHOD_GOOGLE)) {
-            mGoogleApiClient.connect();
-        }
+
     }
 
     protected void onStop() {
         super.onStop();
-        if (dsuAuthorizationMethod.equals(DSUClient.AUTHORIZATION_METHOD_GOOGLE)) {
-            if (mGoogleApiClient.isConnected()) {
-                mGoogleApiClient.disconnect();
-            }
-        }
     }
-
+    void startAccountPicker (){
+        String[] accountTypes = new String[]{"com.google"};
+        Intent intent = AccountPicker.newChooseAccountIntent(null, null,
+                accountTypes, true, null, null, null, null);
+        startActivityForResult(intent, REQUEST_CODE_PICK_ACCOUNT);
+    }
     @Override
     protected void onActivityResult(int requestCode, int responseCode, Intent intent) {
-        if (requestCode == RC_SIGN_IN) {
-            mIntentInProgress = false;
-
+        if (requestCode == REQUEST_CODE_PICK_ACCOUNT) {
             if (dsuAuthorizationMethod.equals(DSUClient.AUTHORIZATION_METHOD_GOOGLE)) {
-                if (!mGoogleApiClient.isConnecting()) {
-                    mGoogleApiClient.connect();
-                }
+                // Receiving a result from the AccountPicker
+                if (responseCode == RESULT_OK) {
+                    Account googleAccount =
+                            new Account(
+                            intent.getStringExtra(AccountManager.KEY_ACCOUNT_NAME),
+                            intent.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE));
+                    // With the account name acquired, go get the auth token
+                    new GoogleSignIn().execute(googleAccount);
+                } else if (responseCode == RESULT_CANCELED) {
+                    // The account picker dialog closed without selecting an account.
+                    // Notify users that they must pick an account to proceed.
+                    Toast.makeText(this, R.string.pick_account, Toast.LENGTH_SHORT).show();
+                    finish();
+               }
+
             }
-        } else if (requestCode == AUTH_CODE_REQUEST_CODE) {
+        } else if (requestCode == REQUEST_CODE_RESOLVE_ISSUE) {
             mIntentInProgress = true;
             if (responseCode != RESULT_OK) {
                 onDsuAuthFailed(FAILED_TO_GET_AUTH_CODE);
             } else {
-                if (dsuAuthorizationMethod.equals(DSUClient.AUTHORIZATION_METHOD_GOOGLE)) {
-                    new GoogleSignIn().execute();
-                }
+                startAccountPicker();
             }
         }
     }
 
-    @Override
-    public void onConnectionFailed(ConnectionResult result) {
-        if (!mIntentInProgress && result.hasResolution()) {
-            try {
-                mIntentInProgress = true;
-                result.startResolutionForResult(this, RC_SIGN_IN);
-            } catch (SendIntentException e) {
-                // The intent was canceled before it was sent.  Return to the default
-                // state and attempt to connect to get an updated ConnectionResult.
-                mIntentInProgress = false;
-                if (dsuAuthorizationMethod.equals(DSUClient.AUTHORIZATION_METHOD_GOOGLE)) {
-                    mGoogleApiClient.connect();
-                }
-            }
-        } else {
-            Toast.makeText(this, getString(io.smalldatalab.omhclient.R.string.google_signin_fail), Toast.LENGTH_LONG).show();
-        }
-    }
 
-    @Override
-    public void onConnected(Bundle connectionHint) {
-        if (!mIntentInProgress) {
-            mIntentInProgress = true;
-            if (dsuAuthorizationMethod.equals(DSUClient.AUTHORIZATION_METHOD_GOOGLE)) {
-                new GoogleSignIn().execute();
-            }
-        }
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        if (dsuAuthorizationMethod.equals(DSUClient.AUTHORIZATION_METHOD_GOOGLE)) {
-            mGoogleApiClient.connect();
-        }
-    }
 
     @Override
     public void finish() {
@@ -167,30 +133,23 @@ public class DSUAccountAuthActivity extends AccountAuthenticatorActivity impleme
     }
 
 
-    private class GoogleSignIn extends AsyncTask<Void, Void, Void> {
+    private class GoogleSignIn extends AsyncTask<Account, Void, Void> {
 
         @Override
-        protected Void doInBackground(Void... _) {
+        protected Void doInBackground(Account... params) {
+            Account googleAccount = params[0];
 
             // ** Step 1. Obtain Google Access Token **
-            Bundle appActivities = new Bundle();
-            String scopes = "oauth2:email profile";
             Context cxt = DSUAccountAuthActivity.this;
             try {
-                String accountName = Plus.AccountApi.getAccountName(mGoogleApiClient);
-                String googleAccessToken = GoogleAuthUtil.getToken(
-                        DSUAccountAuthActivity.this,                        // Context context
-                        accountName,                                        // String accountName
-                        scopes,                                            // String scope
-                        appActivities                                      // Bundle bundle
-                );
+                String googleAccessToken = GoogleAuthUtil.getToken(DSUAccountAuthActivity.this, googleAccount, scope);
                 Bundle options = DSUAccountAuthActivity.this.getIntent().getBundleExtra("options");
                 DSUClient client = DSUClient.getDSUClientFromOptions(options, DSUAccountAuthActivity.this);
 
                 Response response = client.signinGoogle(googleAccessToken);
                 // clear token and default account from cache immediately to avoid stable state in the future
                 GoogleAuthUtil.clearToken(DSUAccountAuthActivity.this, googleAccessToken);
-                Plus.AccountApi.clearDefaultAccount(mGoogleApiClient);
+
 
                 String responseBody = "";
                 if (response != null && response.isSuccessful()) {
@@ -202,27 +161,27 @@ public class DSUAccountAuthActivity extends AccountAuthenticatorActivity impleme
                         final String refreshToken = token.getString(DSUAuth.REFRESH_TOKEN_TYPE);
                         // Get an instance of the Android account manager
                         AccountManager accountManager = (AccountManager) getSystemService(ACCOUNT_SERVICE);
-                        final Account account = DSUAuth.getDefaultAccount(cxt);
+                        final Account dsuAccount = DSUAuth.getDefaultAccount(cxt);
                         // set options bundle as the userdata
-                        accountManager.addAccountExplicitly(account, null, options);
+                        accountManager.addAccountExplicitly(dsuAccount, null, options);
 
                         // make the account syncable and automatically synced
                         // TODO JARED: this is only used to access the SyncAdapter. Do we want to make it generic?
                         // TODO ANDY: I make authorities to be string value in the xml configuration
                         String providerAuthorities = DSUAuth.getDSUProviderAuthorities(cxt);
-                        ContentResolver.setIsSyncable(account, providerAuthorities, 1);
-                        ContentResolver.setSyncAutomatically(account, providerAuthorities, true);
+                        ContentResolver.setIsSyncable(dsuAccount, providerAuthorities, 1);
+                        ContentResolver.setSyncAutomatically(dsuAccount, providerAuthorities, true);
                         ContentResolver.setMasterSyncAutomatically(true);
 
-                        accountManager.setAuthToken(account, DSUAuth.ACCESS_TOKEN_TYPE, accessToken);
-                        accountManager.setAuthToken(account, DSUAuth.REFRESH_TOKEN_TYPE, refreshToken);
+                        accountManager.setAuthToken(dsuAccount, DSUAuth.ACCESS_TOKEN_TYPE, accessToken);
+                        accountManager.setAuthToken(dsuAccount, DSUAuth.REFRESH_TOKEN_TYPE, refreshToken);
 
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 Intent i = new Intent();
-                                i.putExtra(AccountManager.KEY_ACCOUNT_NAME, account.name);
-                                i.putExtra(AccountManager.KEY_ACCOUNT_TYPE, account.type);
+                                i.putExtra(AccountManager.KEY_ACCOUNT_NAME, dsuAccount.name);
+                                i.putExtra(AccountManager.KEY_ACCOUNT_TYPE, dsuAccount.type);
                                 DSUAccountAuthActivity.this.setAccountAuthenticatorResult(i.getExtras());
                                 setResult(RESULT_OK);
                                 finish();
@@ -245,7 +204,7 @@ public class DSUAccountAuthActivity extends AccountAuthenticatorActivity impleme
                 // because the user must consent to offline access to their data.  After
                 // consent is granted control is returned to your activity in onActivityResult
                 // and the second call to GoogleAuthUtil.getToken will succeed.
-                DSUAccountAuthActivity.this.startActivityForResult(e.getIntent(), AUTH_CODE_REQUEST_CODE);
+                DSUAccountAuthActivity.this.startActivityForResult(e.getIntent(), REQUEST_CODE_RESOLVE_ISSUE);
 
             } catch (Exception e) {
                 Log.e(TAG, "Failed to sign in", e);
