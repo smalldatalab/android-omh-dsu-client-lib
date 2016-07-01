@@ -10,17 +10,17 @@ Android library project that enables authentication and upload of  data-points t
 dependencies {
  
     /** For omh client library **/
-    compile(name:'omhclient_library-release-1.0', ext:'aar')
+    compile(name:'omhclient_library-release-1.5', ext:'aar')
     
-    // for google sign-in (4.4 or higher)
-    compile 'com.google.android.gms:play-services-identity:7.0.0'
-    compile 'com.google.android.gms:play-services-plus:7.0.0'
+
+    // for google sign-in
+    compile 'com.google.android.gms:play-services-identity:8.4.0'
+
     // for http client
     compile 'com.squareup.okhttp:okhttp:2.3.0'
     // for db
     compile 'com.github.satyan:sugar:1.3'
-    // for datetime
-    compile 'joda-time:joda-time:2.3'
+    
 }
 ```
 * In your *AndroidManifes.xml*, add attribute ```android:name="com.orm.SugarApp" ``` to the application tag. This will replace the default Application class with the SurgarApp to enble the [Surgar ORM](http://satyan.github.io/sugar/). For example:

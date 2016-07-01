@@ -1,7 +1,8 @@
 package io.smalldatalab.omhclient;
 
-import org.joda.time.DateTime;
 import org.json.JSONObject;
+
+import java.util.Calendar;
 
 public class DSUDataPointBuilder {
     private String schemaNamespace;
@@ -9,7 +10,7 @@ public class DSUDataPointBuilder {
     private String schemaVersion;
     private String acquisitionSource = null;
     private String acquisitionModality = null;
-    private DateTime creationDateTime;
+    private Calendar creationDateTime;
     private String body;
 
     public DSUDataPointBuilder setSchemaNamespace(String schemaNamespace) {
@@ -37,7 +38,7 @@ public class DSUDataPointBuilder {
         return this;
     }
 
-    public DSUDataPointBuilder setCreationDateTime(DateTime creationDateTime) {
+    public DSUDataPointBuilder setCreationDateTime(Calendar creationDateTime) {
         this.creationDateTime = creationDateTime;
         return this;
     }
@@ -52,7 +53,7 @@ public class DSUDataPointBuilder {
     }
 
     public DSUDataPoint createDSUDataPoint() {
-        String creationDateTimeString = creationDateTime == null ? new DateTime().toString() : creationDateTime.toString();
+        String creationDateTimeString = creationDateTime == null ? ISO8601.now() : ISO8601.fromCalendar(creationDateTime);
         return new DSUDataPoint(
                 schemaNamespace,
                 schemaName,

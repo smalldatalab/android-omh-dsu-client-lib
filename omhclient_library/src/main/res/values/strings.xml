@@ -13,6 +13,8 @@
     <!-- Replace these to customize the dialog -->
     <string name="signin_progress_dialog_title">Sign in</string>
     <string name="signin_progress_dialog_message">We are signing you in…</string>
+    <string name="google_signin_scope">oauth2:email profile</string>
+    <string name="pick_account">Please pick an account to sign in</string>
 
 
 </resources>

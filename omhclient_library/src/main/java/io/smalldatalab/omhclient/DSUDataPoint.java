@@ -76,5 +76,32 @@ public class DSUDataPoint extends SugarRecord<DSUDataPoint> {
         datapoint.put("body", body);
         return datapoint;
     }
+    public String getSchemaNamespace() {
+        return schemaNamespace;
+    }
+
+    public String getSchemaName() {
+        return schemaName;
+    }
+
+    public String getSchemaVersion() {
+        return schemaVersion;
+    }
+
+    public String getAcquisitionSource() {
+        return acquisitionSource;
+    }
+
+    public String getAcquisitionModality() {
+        return acquisitionModality;
+    }
+
+    public String getCreationDateTime() {
+        return creationDateTime;
+    }
+
+    public String getBody() {
+        return body;
+    }
 
 }
